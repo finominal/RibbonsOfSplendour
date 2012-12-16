@@ -4,9 +4,7 @@
 #include <SPI.h>
 #include <ShiftStepper.h
 
-
 #define CS 40 // CS pin for clock
-
 
 enum GlobalState {eBooting, eCountdown, eSetGlobalTime, eSetTargetTime};
 enum RunningState {eStarting, eRunning, eFinished};
@@ -15,12 +13,23 @@ GlobalState GLOBAL_STATE;
 RunningState RUNNING_STATE;
 
 Ds3234 clock(CS);
+
+ /*The circuit:
+ * LCD RS pin to digital pin 12
+ * LCD Enable pin to digital pin 11
+ * LCD D4 pin to digital pin 5
+ * LCD D5 pin to digital pin 4
+ * LCD D6 pin to digital pin 3
+ * LCD D7 pin to digital pin 2
+ * LCD R/W pin to ground
+ * 10K resistor:
+ * ends to +5V and ground
+ * wiper to LCD VO pin (pin 3) */
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
-byte year, month, date, ampm, hour, minute, sec;
+//reserve clock variables
+byte year, month, date, ampm, hour, minute, sec; 
 
-
-//ds3234 clock(CS);
 
 void setup()
 {
