@@ -1,20 +1,21 @@
+
+
+#include <SplendourClock.h>
 #include <LiquidCrystal.h>
+#include <ShiftStepper.h>
 
-#include <Ds3234.h>
-#include <SPI.h>
-#include <ShiftStepper.h
-
-#define CS 40 // CS pin for clock
 
 enum GlobalState {eBooting, eCountdown, eSetGlobalTime, eSetTargetTime};
 enum RunningState {eStarting, eRunning, eFinished};
 
+
 GlobalState GLOBAL_STATE;
 RunningState RUNNING_STATE;
 
-Ds3234 clock(CS);
 
- /*The circuit:
+SplendourClock clockManager;
+
+/*The circuit:
  * LCD RS pin to digital pin 12
  * LCD Enable pin to digital pin 11
  * LCD D4 pin to digital pin 5
@@ -27,18 +28,19 @@ Ds3234 clock(CS);
  * wiper to LCD VO pin (pin 3) */
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
-//reserve clock variables
-byte year, month, date, ampm, hour, minute, sec; 
-
 
 void setup()
 {
-  // set up the LCD's number of columns and rows: 
-  lcd.begin(16, 2);
-  lcd.print("Fluffy Light");
-  lcd.setCursor(0, 1);
-  lcd.print("Engineering");
-  
+    Serial.begin(9600);
+    
+    // set up the LCD's number of columns and rows: 
+    lcd.begin(16, 2);
+    lcd.setCursor(0, 0);
+    lcd.print("Fluffy Light");
+    lcd.setCursor(0, 1);
+    lcd.print("Engineering");
+    //SplendourClock::SplendourClock(11);
+
   GLOBAL_STATE = eBooting;
   RUNNING_STATE = eStarting;
 }
@@ -51,15 +53,25 @@ else if (GLOBAL_STATE == eSetTargetTime) {SetTargetTime();}
 }
 
 void Countdown()
-{}
+{
+  
+}
 
 void SetGlobalTime()
 {
-  rtc.GetDate(year, month, date);
-  rtc.GetTime(ampm, hour, minute, sec);
-  //display Current Time on LCD
   
 }
 
 void SetTargetTime()
 {}
+
+//Joystick button handler
+/*
+//state based decision - INTERRUPT ON
+If(GLOBAL_STATE == Running)
+{
+//Turn off FireButton INTERRUPT
+//Set GLOBAL_STATE to eSetGlobalTime
+}
+
+*/
