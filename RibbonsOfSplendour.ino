@@ -22,6 +22,7 @@ void SetGlobalTime();
 void Countdown();
 void ClockInitialize();
 void LCDInitialize();
+//void InitializeAtariJoystick();
 
 //Helpers
 #define p(x) Serial.print(x);
@@ -38,39 +39,40 @@ void LCDInitialize();
 #define eepTargetMinute 4004
 #define eepTargetSecond 4005
 
+//Enumerators 
 enum GlobalState {eBooting, eCountdown, eSetGlobalTime, eSetTargetTime};
 enum RunningState {eStarting, eRunning, eFinished};
 enum DisplayState {eGlobal, eTarget};
 
+//State Management
 GlobalState GLOBAL_STATE;
 RunningState RUNNING_STATE;
 DisplayState DISPLAY_STATE;
 
-/*The circuit:
- * LCD RS pin to digital pin 12/34
- * LCD Enable pin to digital pin 11/36
- * LCD D4 pin to digital pin 5/38
- * LCD D5 pin to digital pin 4/40
- * LCD D6 pin to digital pin 3/42
- * LCD D7 pin to digital pin 2/44
- * LCD R/W pin to ground
- * 10K resistor:
- * ends to +5V and ground
- * wiper to LCD VO pin (pin 3) */
-
+//Declare Library Classes
 LiquidCrystal lcd(34, 36, 38, 40, 42, 44);
-
 RTC_DS3234 clock(SPI_CS);
 
-//PROGRAM VARIABLES
+//Program Variables
 DateTime globalTime; 
 DateTime targetTime;
 char lcdLine1[17];
 char lcdLine2[17];
-unsigned int lastDisplayUpdate;
-const int displayToggleTime = 5;//seconds
-int mainLoopDelayMS = 200;
+unsigned int cyclesSinceLastDisplayToggle = 0;
+const int displayToggleTime = 20;//cycles
+const int mainLoopDelayMS = 200;
 
+//Custom Font
+byte underscore[8] = {
+  0b11111,
+  0b11111,
+  0b00000,
+  0b00000,
+  0b00000,
+  0b00000,
+  0b00000,
+  0b00000
+};
 
 
 
@@ -89,6 +91,9 @@ void setup()
   RUNNING_STATE = eStarting;
   DISPLAY_STATE = eGlobal;
   
+  //setup Atari Joystick 
+  InitializeAtariJoystick();
+  
 //  //SET GLOBAL TIME to PC time (time snapshot written as constants into progmem)
 //  clock.adjust(DateTime(__DATE__, __TIME__));
 
@@ -98,11 +103,12 @@ void setup()
 //  TargetTimeWriteEeprom();
   
   pl("Getting Saved Target Time");
-  TargetTimeReadEeprom();
+  TargetTimeReadEeprom(); //get the stored target time out of non volitile storage.
   SerialDisplayTargetTime();
-  
-  lastDisplayUpdate = millis(); //Set the timer value for the display updates
+  delay(1000);
+
 }
+
 
 void loop()
 {
@@ -120,6 +126,12 @@ void loop()
 }
 
 
+
+
+
+
+
+
 //INITIALIZATION //INITIALIZATION //INITIALIZATION //INITIALIZATION //INITIALIZATION 
 //INITIALIZATION //INITIALIZATION //INITIALIZATION //INITIALIZATION //INITIALIZATION 
 //INITIALIZATION //INITIALIZATION //INITIALIZATION //INITIALIZATION //INITIALIZATION 
@@ -129,13 +141,20 @@ void LCDInitialize()
   pl("Initializing LCD");
   // set up the LCD's number of columns and rows: 
   lcd.begin(16, 2);
+  
+  //register custom underscore
+  lcd.createChar(1, underscore);
+  
+  //print welcome streen
   lcd.setCursor(0, 0);
   lcd.print("FLUFFY LIGHT");
   lcd.setCursor(0, 1);
   lcd.print("ENGINEERING");
+  
   pl("Initializing LCD OK");
-  delay(3000);
+  delay(3000); //pause welcome screen
 }
+
 void ClockInitialize()
 {
   pl("Initializing Clock");
@@ -145,6 +164,15 @@ void ClockInitialize()
   pl("Clock Initialized OK");
 }
 
+ void InitializeAtariJoystick()
+{
+  //set inputs 
+  attachInterrupt(2, AtariRedButtonPressed, FALLING);
+}
+
+
+
+
 
 
 
@@ -152,10 +180,17 @@ void ClockInitialize()
 //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES 
 //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES 
 
-void Countdown()
+void AtariRedButtonPressed()
+{
+  if(GLOBAL_STATE == eCountdown){GLOBAL_STATE = eSetGlobalTime;  return;}
+  if(GLOBAL_STATE == eSetGlobalTime){GLOBAL_STATE = eSetTargetTime; return;}
+  if(GLOBAL_STATE == eSetTargetTime){GLOBAL_STATE = eCountdown; return;}
+}
+ 
+ void Countdown()
 {
   pl("Countdown");
-  GetglobalTime();
+  GetGlobalTime();
   
   //Process
   
@@ -164,13 +199,23 @@ void Countdown()
 
 void SetGlobalTime()
 {
-  pl("SetglobalTime");
+  lcd.clear();
+ lcd.print("Setting Global");
 }
 
 void SetTargetTime()
 {
-  pl("SettargetTime");
+  lcd.clear();
+  lcd.print("Setting Target");
 }
+
+
+
+
+
+
+
+
 
 
 
@@ -181,22 +226,23 @@ void SetTargetTime()
 void UpdateCountDownDisplay()
 {
   //Update Display
-  if(millis() < displayToggleTime*1000){lastDisplayUpdate = 0;} //Guard Clause to protect following from millis rollover
-  
-   if((millis()/1000) - lastDisplayUpdate > displayToggleTime)
+
+   if(cyclesSinceLastDisplayToggle > displayToggleTime)//TIme to change display, uses a display state
    {
      pl("*Change Global Display - Update Timer");
      if(DISPLAY_STATE == eGlobal){DISPLAY_STATE=eTarget;}
      else{DISPLAY_STATE=eGlobal;}
-     lastDisplayUpdate = (millis()/1000);
+     cyclesSinceLastDisplayToggle = 0; //reset the counter
    }
    
    pl("Updating CountDown Display");
    if(DISPLAY_STATE == eGlobal) {LCDDisplayGlobalTime();}
    else{LCDDisplayTargetTime();}
+   
+   cyclesSinceLastDisplayToggle++;
 }
 
-void GetglobalTime()
+void GetGlobalTime()
 {
   globalTime = clock.now();
 }
