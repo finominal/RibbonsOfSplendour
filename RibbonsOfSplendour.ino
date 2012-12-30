@@ -10,19 +10,24 @@
 void DevDisplay();
 void SerialDisplayTargetTime();
 void SerialDisplayGlobalTime();
-void LCDPrep();
 void TargetTimeReadEeprom();
 void TargetTimeWriteEeprom();
 void LCDDisplayTargetTime();
 void LCDDisplayGlobalTime();
+void LCDDisplayGlobalTimeSet();
 void GetGlobalTime();
 void UpdateCountDownDisplay();
 void SetTargetTime();
 void SetGlobalTime();
 void Countdown();
-void ClockInitialize();
-void LCDInitialize();
-//void InitializeAtariJoystick();
+void InitializeClock();
+void InitializeLCD();
+void InitializeAtariJoystick();
+void AtariJoystickLEFT();
+void AtariJoystickUP();
+void AtariJoystickDOWN();
+void AtariJoystickRIGHT();
+void ClearAtariJoystickBuffer();
 
 //Helpers
 #define p(x) Serial.print(x);
@@ -39,15 +44,22 @@ void LCDInitialize();
 #define eepTargetMinute 4004
 #define eepTargetSecond 4005
 
+
 //Enumerators 
 enum GlobalState {eBooting, eCountdown, eSetGlobalTime, eSetTargetTime};
 enum RunningState {eStarting, eRunning, eFinished};
-enum DisplayState {eGlobal, eTarget};
+enum RunningDisplayState {eGlobal, eTarget};
+enum AtariJoystick {eCentre, eUp, eDown, eLeft, eRight};
+enum SetTimeFocus {eYear, eMonth, eDay, eHour, eMinute};
+
 
 //State Management
 GlobalState GLOBAL_STATE;
 RunningState RUNNING_STATE;
-DisplayState DISPLAY_STATE;
+RunningDisplayState DISPLAY_STATE;
+AtariJoystick ATARI_JOYSTICK; 
+SetTimeFocus SET_TIME_FOCUS;
+
 
 //Declare Library Classes
 LiquidCrystal lcd(34, 36, 38, 40, 42, 44);
@@ -58,9 +70,11 @@ DateTime globalTime;
 DateTime targetTime;
 char lcdLine1[17];
 char lcdLine2[17];
-unsigned int cyclesSinceLastDisplayToggle = 0;
-const int displayToggleTime = 20;//cycles
-const int mainLoopDelayMS = 200;
+unsigned int cyclesSinceLastDisplayToggle;
+const float mainLoopDelayMS = 200;
+const int displayToggleTimeSeconds = 5; //THis valued determins how long the running display will toggle for.
+int displayToggleCycles = displayToggleTimeSeconds * ( 1000 / mainLoopDelayMS); //calcuate cycles dynamically
+
 
 //Custom Font
 byte underscore[8] = {
@@ -84,15 +98,14 @@ void setup()
   pl();
   pl("******Arduino Restart*******");
   
-  LCDInitialize();
-  ClockInitialize();
+  InitializeLCD();
+  InitializeClock();
+  InitializeAtariJoystick();
       
   GLOBAL_STATE = eCountdown;
   RUNNING_STATE = eStarting;
   DISPLAY_STATE = eGlobal;
   
-  //setup Atari Joystick 
-  InitializeAtariJoystick();
   
 //  //SET GLOBAL TIME to PC time (time snapshot written as constants into progmem)
 //  clock.adjust(DateTime(__DATE__, __TIME__));
@@ -132,60 +145,13 @@ void loop()
 
 
 
-//INITIALIZATION //INITIALIZATION //INITIALIZATION //INITIALIZATION //INITIALIZATION 
-//INITIALIZATION //INITIALIZATION //INITIALIZATION //INITIALIZATION //INITIALIZATION 
-//INITIALIZATION //INITIALIZATION //INITIALIZATION //INITIALIZATION //INITIALIZATION 
-
-void LCDInitialize()
-{
-  pl("Initializing LCD");
-  // set up the LCD's number of columns and rows: 
-  lcd.begin(16, 2);
-  
-  //register custom underscore
-  lcd.createChar(1, underscore);
-  
-  //print welcome streen
-  lcd.setCursor(0, 0);
-  lcd.print("FLUFFY LIGHT");
-  lcd.setCursor(0, 1);
-  lcd.print("ENGINEERING");
-  
-  pl("Initializing LCD OK");
-  delay(3000); //pause welcome screen
-}
-
-void ClockInitialize()
-{
-  pl("Initializing Clock");
-  pinMode(SPI_CS, OUTPUT);
-  SPI.begin();
-  //clock.begin();
-  pl("Clock Initialized OK");
-}
-
- void InitializeAtariJoystick()
-{
-  //set inputs 
-  attachInterrupt(2, AtariRedButtonPressed, FALLING);
-}
-
-
-
-
-
-
 
 //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES 
 //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES 
 //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES 
 
-void AtariRedButtonPressed()
-{
-  if(GLOBAL_STATE == eCountdown){GLOBAL_STATE = eSetGlobalTime;  return;}
-  if(GLOBAL_STATE == eSetGlobalTime){GLOBAL_STATE = eSetTargetTime; return;}
-  if(GLOBAL_STATE == eSetTargetTime){GLOBAL_STATE = eCountdown; return;}
-}
+
+
  
  void Countdown()
 {
@@ -199,9 +165,53 @@ void AtariRedButtonPressed()
 
 void SetGlobalTime()
 {
-  lcd.clear();
- lcd.print("Setting Global");
+  pl("Enter SetGLobalTime");
+
+  
+  //NEED TO IMPLEMENT CURSOR HERE 
+  while (ATARI_JOYSTICK == eCentre && GLOBAL_STATE == eSetGlobalTime) //wait for input
+    {
+        pl("Waiting For Input Loop");
+        
+        //Display The current Global Time
+        lcd.clear();
+        GetGlobalTime();
+        LCDDisplayGlobalTimeSet();
+        
+        //Set the cursor to the first position
+        SetCursorPositionForSetTimeFocus();
+        lcd.blink();
+        delay(mainLoopDelayMS);
+    }
+    
+    lcd.clear();
+    
+  pl("SetGLobalTime - Post While Loop");
+  switch(ATARI_JOYSTICK) {
+  case eLeft:
+    lcd.print("Left");
+    delay(500);
+    ClearAtariJoystickBuffer();
+    break;
+  case eRight:
+    lcd.print("RIght");
+    delay(500);
+    ClearAtariJoystickBuffer();
+    break;
+  case eUp:
+    globalTime = AdjustClockUp(globalTime);
+    clock.adjust(globalTime);
+    ClearAtariJoystickBuffer();
+    break;
+  case eDown:
+    lcd.print("Down");
+    delay(500);
+    ClearAtariJoystickBuffer();
+    break;
+  }
+
 }
+
 
 void SetTargetTime()
 {
@@ -217,17 +227,42 @@ void SetTargetTime()
 
 
 
+//ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE 
+//ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE 
+//ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE 
 
 
-//ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE 
-//ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE 
-//ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE 
+void UpdateTimeWithJoystick()
+{
+  
+   
+  switch (SET_TIME_FOCUS) {
+    case eYear:
+      
+      break;
+    case eMonth:
+      
+      break;
+     case eDay:
+      
+      break;
+     case eHour:
+       
+      break;
+     case eMinute:
+      
+      break;
+  }
+}
+
+
+
 
 void UpdateCountDownDisplay()
 {
   //Update Display
 
-   if(cyclesSinceLastDisplayToggle > displayToggleTime)//TIme to change display, uses a display state
+   if(cyclesSinceLastDisplayToggle > displayToggleCycles)//Time to change display, uses a display state
    {
      pl("*Change Global Display - Update Timer");
      if(DISPLAY_STATE == eGlobal){DISPLAY_STATE=eTarget;}
@@ -242,137 +277,8 @@ void UpdateCountDownDisplay()
    cyclesSinceLastDisplayToggle++;
 }
 
-void GetGlobalTime()
-{
-  globalTime = clock.now();
-}
 
-void LCDDisplayGlobalTime()
-{
-  LCDPrep();
-  
-  char buf[21];
-  globalTime.toString(buf,21);
-  
-  //Build the first LCD row  
-  lcdLine1[0] = 'G';
-  lcdLine1[1] = 'L';
-  lcdLine1[2] = 'O';
-  lcdLine1[3] = 'B';
-  lcdLine1[4] = 'A';          
-  lcdLine1[5] = 'L';  
-  lcdLine1[6] = ':';
-  lcdLine1[7] = ' ';
-  lcdLine1[8] = buf[12];
-  lcdLine1[9] = buf[13];
-  lcdLine1[10] = buf[14];
-  lcdLine1[11] = buf[15];
-  lcdLine1[12] = buf[16];
-  lcdLine1[13] = buf[17];
-  lcdLine1[14] = buf[18];
-  lcdLine1[15] = buf[19];
-  lcdLine1[16] = buf[20];
-  
-  //Build the second  LCD row
-  lcdLine2[5] = buf[0];
-  lcdLine2[6] = buf[1];          
-  lcdLine2[7] = buf[2];          
-  lcdLine2[8] = buf[3];
-  lcdLine2[9] = buf[4];
-  lcdLine2[10] = buf[5];
-  lcdLine2[11] = buf[6];
-  lcdLine2[12] = buf[7];
-  lcdLine2[13] = buf[8];
-  lcdLine2[14] = buf[9];
-  lcdLine2[15] = buf[10];
-   
-  //Update Display
-  lcd.setCursor(0, 0);
-  lcd.print(lcdLine1);
-  lcd.setCursor(0, 1);
-  lcd.print(lcdLine2);
-}
 
-void LCDDisplayTargetTime()
-{
-  LCDPrep();
-  
-  char buf[21];
-  targetTime.toString(buf,21);
-  
-  //Build the first LCD row  
-  lcdLine1[0] = 'T';
-  lcdLine1[1] = 'A';
-  lcdLine1[2] = 'R';
-  lcdLine1[3] = 'G';
-  lcdLine1[4] = 'E';          
-  lcdLine1[5] = 'T';  
-  lcdLine1[6] = ':';
-  lcdLine1[7] = ' ';
-  lcdLine1[8] = buf[12];
-  lcdLine1[9] = buf[13];
-  lcdLine1[10] = buf[14];
-  lcdLine1[11] = buf[15];
-  lcdLine1[12] = buf[16];
-  lcdLine1[13] = buf[17];
-  lcdLine1[14] = buf[18];
-  lcdLine1[15] = buf[19];
-  lcdLine1[16] = buf[20];
-  
-  //Build the second  LCD row
-  lcdLine2[5] = buf[0];
-  lcdLine2[6] = buf[1];          
-  lcdLine2[7] = buf[2];          
-  lcdLine2[8] = buf[3];
-  lcdLine2[9] = buf[4];
-  lcdLine2[10] = buf[5];
-  lcdLine2[11] = buf[6];
-  lcdLine2[12] = buf[7];
-  lcdLine2[13] = buf[8];
-  lcdLine2[14] = buf[9];
-  lcdLine2[15] = buf[10];
-   
-  //Update Display
-  lcd.setCursor(0, 0);
-  lcd.print(lcdLine1);
-  lcd.setCursor(0, 1);
-  lcd.print(lcdLine2);
-}
-
-void TargetTimeWriteEeprom()
-{
-  EEPROM.write(eepTargetYear,targetTime.yOff);
-  EEPROM.write(eepTargetMonth,targetTime.m);
-  EEPROM.write(eepTargetDay,targetTime.d);
-  EEPROM.write(eepTargetHour,targetTime.hh);
-  EEPROM.write(eepTargetMinute,targetTime.mm);
-  EEPROM.write(eepTargetSecond,targetTime.ss);
-}
-
-void TargetTimeReadEeprom()
-{
-  targetTime = DateTime(
-  EEPROM.read(eepTargetYear),
-  EEPROM.read(eepTargetMonth),
-  EEPROM.read(eepTargetDay),
-  EEPROM.read(eepTargetHour),
-  EEPROM.read(eepTargetMinute),
-  EEPROM.read(eepTargetSecond));
-}
-
-void LCDPrep()
-{
-  lcd.clear();
-  
-  for(int i = 0;i<16;i++)//clean the display characters
-  {
-    lcdLine1[i] = ' ';
-    lcdLine2[i] = ' ';
-  }
-  
-  lcdLine1[16] = '\0';
-  lcdLine2[16] = '\0';
-}
 
 void SerialDisplayGlobalTime()
 {
@@ -380,7 +286,7 @@ void SerialDisplayGlobalTime()
   const int len = 21;
   static char buf[len];
   p("Global Time: ");
-  Serial.println(globalTime.toString(buf,len));
+  pl(globalTime.toString(buf,len));
 }
 
 void SerialDisplayTargetTime()
@@ -389,7 +295,7 @@ void SerialDisplayTargetTime()
   const int len = 21;
   static char buf[len];
   p("SRAM Target Time: ");
-  Serial.println(targetTime.toString(buf,len));
+  pl(targetTime.toString(buf,len));
 }
 
 void DevDisplay()
