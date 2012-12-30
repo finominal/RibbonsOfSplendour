@@ -1,9 +1,6 @@
-DateTime AdjustClockUp( DateTime timeToAdjust)
+
+DateTime AdjustClockUp(DateTime timeToAdjust)
 {
-  pl("Enter AdjustClockUp");
-  delay(1000);
-  p("SET_TIME_FOCUS=")
-  pl(SET_TIME_FOCUS);
   
 switch(SET_TIME_FOCUS){
   
@@ -60,9 +57,78 @@ switch(SET_TIME_FOCUS){
         timeToAdjust.m = 0;
       }
     break;
-}
+  }
+
 return timeToAdjust;
 }
 
-//const char* months[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
-//static const uint8_t daysInMonth[] PROGMEM = { 31,28,31,30,31,30,31,31,30,31,30,31 };
+
+
+DateTime AdjustClockDown(DateTime timeToAdjust)
+{
+  
+switch(SET_TIME_FOCUS){
+  
+  case eYear:
+    timeToAdjust.yOff--;
+    break;
+    
+  case eMonth:
+   if(timeToAdjust.m == 1)
+   {
+     timeToAdjust.m = 12;
+   }
+   else
+   {
+    timeToAdjust.m--;
+   }
+    break;
+    
+  case eDay:
+     if(timeToAdjust.yOff % 4 == 0 && timeToAdjust.m == 2 && timeToAdjust.d == 1)//leapyear.
+     {
+       timeToAdjust.d = 29;
+     }
+   else if(timeToAdjust.yOff % 4 > 0 && timeToAdjust.m == 2 && timeToAdjust.d == 1)//Febuary
+     {
+       timeToAdjust.d = 28; 
+     }
+   else if(timeToAdjust.m == 4 || timeToAdjust.m == 6 || timeToAdjust.m == 9 || timeToAdjust.m == 11 && timeToAdjust.d == 1) //30 day months
+     {
+       timeToAdjust.d = 30;
+     }
+   else if(timeToAdjust.m == 1 || timeToAdjust.m == 3 || timeToAdjust.m == 5 || timeToAdjust.m == 7  || timeToAdjust.m == 8 || timeToAdjust.m == 10 || timeToAdjust.m == 12 && timeToAdjust.d == 1 ) //30 day months
+      {
+        timeToAdjust.d = 31;
+     }
+   else //defalt on an ordinary day
+   {
+     timeToAdjust.d--;
+   }
+     break;
+  case eHour:
+      if(timeToAdjust.hh == 0)
+      {
+      timeToAdjust.hh = 23;
+      }
+      else
+      {
+      timeToAdjust.hh--;
+      }
+    break;
+  case eMinute:
+        if(timeToAdjust.mm == 0)
+      {
+        timeToAdjust.mm = 59;
+      }
+      else 
+      {
+      timeToAdjust.mm--;
+      }
+    break;
+}
+
+return timeToAdjust;
+}
+
+

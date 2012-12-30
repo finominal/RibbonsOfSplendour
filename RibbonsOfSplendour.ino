@@ -204,8 +204,8 @@ void SetGlobalTime()
     ClearAtariJoystickBuffer();
     break;
   case eDown:
-    lcd.print("Down");
-    delay(500);
+    globalTime = AdjustClockDown(globalTime);
+    clock.adjust(globalTime);
     ClearAtariJoystickBuffer();
     break;
   }
