@@ -36,6 +36,26 @@ void LCDDisplayTargetTime()
   for(int i = 0;i<=10;i++){lcd.print(buf[i]);}
 }
 
+void LCDDisplayTargetTimeSet()
+{
+  lcd.clear();
+  
+  char buf[21];
+  targetTime.toString(buf,21);
+   
+  //Update Display
+  //Line 1
+  lcd.setCursor(0, 0);
+  lcd.print("target: ");
+  for(int i = 12;i<=20;i++){lcd.print(buf[i]);}
+
+  //Line 2
+  lcd.setCursor(0, 1);
+  lcd.print("set  ");
+  for(int i = 0;i<=10;i++){lcd.print(buf[i]);}
+}
+
+
 void LCDDisplayGlobalTime()
 {
   lcd.clear();
@@ -65,12 +85,12 @@ void LCDDisplayGlobalTimeSet()
   //Update Display
   //Line 1
   lcd.setCursor(0, 0);
-  lcd.print("GLOBAL: ");
+  lcd.print("global: ");
   for(int i = 12;i<=20;i++){lcd.print(buf[i]);}
 
   //Line 2
   lcd.setCursor(0, 1);
-  lcd.print("SET  ");
+  lcd.print("set  ");
   for(int i = 0;i<=10;i++){lcd.print(buf[i]);}
 }
 
@@ -93,6 +113,9 @@ int SetCursorPositionForSetTimeFocus()
       break;
      case eMinute:
       lcd.setCursor(12,0); 
+      break;
+     case eSecond:
+      lcd.setCursor(15,0); 
       break;
   }
 }

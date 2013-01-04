@@ -67,8 +67,13 @@ switch(SET_TIME_FOCUS){
       timeToAdjust.mm++;
       }
     break;
+  
+    case eSecond:
+       
+      timeToAdjust.ss = 0;
+      
+    break;
   }
-
 return timeToAdjust;
 }
 
@@ -136,6 +141,11 @@ switch(SET_TIME_FOCUS){
       {
       timeToAdjust.mm--;
       }
+    break;
+  case eSecond:
+       
+      timeToAdjust.ss = 0;
+      
     break;
 }
 

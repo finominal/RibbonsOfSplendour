@@ -195,8 +195,6 @@ void SetGlobalTime()
     lcd.blink();
     delay(mainLoopDelayMS/2);
 
-
-
   }
 
   lcd.clear();
@@ -262,18 +260,94 @@ void SetGlobalTime()
     ClearAtariJoystickBuffer();
     break;
   }
-
 }
 
 
 void SetTargetTime()
+
 {
+  pl("Enter TargetGLobalTime");
+
+  while (ATARI_JOYSTICK == eCentre && GLOBAL_STATE == eSetTargetTime) //wait for input
+  {
+    pl("Waiting For Input (loop)");
+
+    //Display The current Global Time
+    LCDDisplayTargetTimeSet();
+
+    //Set the cursor to the first position
+    SetCursorPositionForSetTimeFocus();
+    lcd.blink();
+    delay(mainLoopDelayMS/2);
+
+  }
+
   lcd.clear();
-  lcd.print("Setting Target");
+
+  pl("SetTargetTime-Navigation");
+  switch(ATARI_JOYSTICK) {
+  case eLeft:
+    switch (SET_TIME_FOCUS) 
+    {
+    case eHour:
+      SET_TIME_FOCUS = eYear;
+      break;
+    case eYear:
+      SET_TIME_FOCUS = eDay;
+      break;
+    case eDay:
+      SET_TIME_FOCUS = eMonth;
+      break;  
+    case eMonth:
+      SET_TIME_FOCUS = eSecond;
+      break;
+    case eSecond:
+      SET_TIME_FOCUS = eMinute;
+      break;
+    case eMinute:
+      SET_TIME_FOCUS = eHour;
+      break;
+    }
+    ClearAtariJoystickBuffer();
+    break;
+  case eRight:
+    switch (SET_TIME_FOCUS) 
+    {
+    case eHour:
+      SET_TIME_FOCUS = eMinute;
+      break;
+    case eMinute:
+      SET_TIME_FOCUS = eSecond;
+      break;
+    case eSecond:
+      SET_TIME_FOCUS = eDay;
+      break;  
+    case eDay:
+      SET_TIME_FOCUS = eMonth;
+      break;
+    case eMonth:
+      SET_TIME_FOCUS = eYear;
+      break;
+    case eYear:
+      SET_TIME_FOCUS = eHour;
+      break;
+    }
+    ClearAtariJoystickBuffer();
+    break;
+  case eUp:
+    targetTime = AdjustClockUp(targetTime);
+    TargetTimeWriteEeprom();
+    TargetTimeReadEeprom();
+    ClearAtariJoystickBuffer();
+    break;
+  case eDown:
+    targetTime = AdjustClockDown(targetTime);
+    TargetTimeWriteEeprom();
+    TargetTimeReadEeprom();
+    ClearAtariJoystickBuffer();
+    break;
+  }
 }
-
-
-
 
 
 
