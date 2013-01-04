@@ -6,7 +6,7 @@ void AtariRedButtonPressed()
   {
     GLOBAL_STATE = eSetGlobalTime; 
     ClearAtariJoystickBuffer(); //make sure there are no joystick registeres 
-    SET_TIME_FOCUS = eYear;    
+    SET_TIME_FOCUS = eHour;    
     return;
   }
   
@@ -14,7 +14,7 @@ void AtariRedButtonPressed()
   {
     GLOBAL_STATE = eSetTargetTime; 
     ClearAtariJoystickBuffer();
-    SET_TIME_FOCUS = eYear;
+    SET_TIME_FOCUS = eHour; 
     return;
   }
 

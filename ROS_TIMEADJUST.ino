@@ -17,8 +17,9 @@ switch(SET_TIME_FOCUS){
    {
     timeToAdjust.m++;
    }
+   timeToAdjust = CheckMonthDateIsValid(timeToAdjust);
     break;
-    
+   
   case eDay:
      if(timeToAdjust.yOff % 4 == 0 && timeToAdjust.m == 2 && timeToAdjust.d == 28)//leapyear.
      {
@@ -32,16 +33,17 @@ switch(SET_TIME_FOCUS){
      {
        timeToAdjust.d = 1; 
      }
-   else if(timeToAdjust.m == 4 || timeToAdjust.m == 6 || timeToAdjust.m == 9 || timeToAdjust.m == 11 && timeToAdjust.d == 30) //30 day months
+   else if((timeToAdjust.m == 4 || timeToAdjust.m == 6 || timeToAdjust.m == 9 || timeToAdjust.m == 11) && timeToAdjust.d == 30) //30 day months
      {
        timeToAdjust.d = 1;
      }
-   else if(timeToAdjust.m == 1 || timeToAdjust.m == 3 || timeToAdjust.m == 5 || timeToAdjust.m == 7  || timeToAdjust.m == 8 || timeToAdjust.m == 10 || timeToAdjust.m == 12 && timeToAdjust.d == 31 ) //30 day months
+   else if((timeToAdjust.m == 1 || timeToAdjust.m == 3 || timeToAdjust.m == 5 || timeToAdjust.m == 7  || timeToAdjust.m == 8 || timeToAdjust.m == 10 || timeToAdjust.m == 12) && timeToAdjust.d == 31 ) //30 day months
       {
         timeToAdjust.d = 1;
      }
    else //defalt on an ordinary day
    {
+     pl("up ++ ");
      timeToAdjust.d++;
    }
      break;
@@ -50,11 +52,19 @@ switch(SET_TIME_FOCUS){
       {
       timeToAdjust.hh = 0;
       }
+      else 
+      {
+      timeToAdjust.hh++;
+      }
     break;
   case eMinute:
         if(timeToAdjust.mm == 59)
       {
-        timeToAdjust.m = 0;
+        timeToAdjust.mm = 0;
+      }
+      else
+      {
+      timeToAdjust.mm++;
       }
     break;
   }
@@ -82,6 +92,7 @@ switch(SET_TIME_FOCUS){
    {
     timeToAdjust.m--;
    }
+   timeToAdjust = CheckMonthDateIsValid(timeToAdjust);
     break;
     
   case eDay:
@@ -93,11 +104,11 @@ switch(SET_TIME_FOCUS){
      {
        timeToAdjust.d = 28; 
      }
-   else if(timeToAdjust.m == 4 || timeToAdjust.m == 6 || timeToAdjust.m == 9 || timeToAdjust.m == 11 && timeToAdjust.d == 1) //30 day months
+   else if((timeToAdjust.m == 4 || timeToAdjust.m == 6 || timeToAdjust.m == 9 || timeToAdjust.m == 11) && timeToAdjust.d == 1) //30 day months
      {
        timeToAdjust.d = 30;
      }
-   else if(timeToAdjust.m == 1 || timeToAdjust.m == 3 || timeToAdjust.m == 5 || timeToAdjust.m == 7  || timeToAdjust.m == 8 || timeToAdjust.m == 10 || timeToAdjust.m == 12 && timeToAdjust.d == 1 ) //30 day months
+   else if((timeToAdjust.m == 1 || timeToAdjust.m == 3 || timeToAdjust.m == 5 || timeToAdjust.m == 7  || timeToAdjust.m == 8 || timeToAdjust.m == 10 || timeToAdjust.m == 12) && timeToAdjust.d == 1 ) //30 day months
       {
         timeToAdjust.d = 31;
      }
@@ -131,4 +142,23 @@ switch(SET_TIME_FOCUS){
 return timeToAdjust;
 }
 
+
+
+DateTime CheckMonthDateIsValid(DateTime timeToAdjust)
+{
+  //if a month is shifted where the date is greater than the months max date, this method will pull the date back to a normal date in that month.
+     if(timeToAdjust.yOff % 4 == 0 && timeToAdjust.m == 2 && timeToAdjust.d > 29)//leapyear.
+     {
+       timeToAdjust.d = 29;
+     }
+   else if(timeToAdjust.yOff % 4 > 0 && timeToAdjust.m == 2 && timeToAdjust.d > 28)//Febuary
+     {
+       timeToAdjust.d = 28; 
+     }
+   else if((timeToAdjust.m == 4 || timeToAdjust.m == 6 || timeToAdjust.m == 9 || timeToAdjust.m == 11) && timeToAdjust.d > 30) //30 day months
+     {
+       timeToAdjust.d = 30;
+     }
+return timeToAdjust;
+}
 

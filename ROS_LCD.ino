@@ -74,6 +74,7 @@ void LCDDisplayGlobalTimeSet()
   for(int i = 0;i<=10;i++){lcd.print(buf[i]);}
 }
 
+
 int SetCursorPositionForSetTimeFocus()
 {
   switch (SET_TIME_FOCUS) {
@@ -88,12 +89,13 @@ int SetCursorPositionForSetTimeFocus()
       lcd.setCursor(10,1); 
       break;
      case eHour:
-      lcd.setCursor(9,1); 
+      lcd.setCursor(9,0); 
       break;
      case eMinute:
-      lcd.setCursor(12,1); 
+      lcd.setCursor(12,0); 
       break;
   }
 }
  
  
+

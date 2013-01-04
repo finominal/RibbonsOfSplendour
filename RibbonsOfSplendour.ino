@@ -46,11 +46,16 @@ void ClearAtariJoystickBuffer();
 
 
 //Enumerators 
-enum GlobalState {eBooting, eCountdown, eSetGlobalTime, eSetTargetTime};
-enum RunningState {eStarting, eRunning, eFinished};
-enum RunningDisplayState {eGlobal, eTarget};
-enum AtariJoystick {eCentre, eUp, eDown, eLeft, eRight};
-enum SetTimeFocus {eYear, eMonth, eDay, eHour, eMinute};
+enum GlobalState {
+  eBooting, eCountdown, eSetGlobalTime, eSetTargetTime};
+enum RunningState {
+  eStarting, eRunning, eFinished};
+enum RunningDisplayState {
+  eGlobal, eTarget};
+enum AtariJoystick {
+  eCentre, eUp, eDown, eLeft, eRight};
+enum SetTimeFocus {
+  eYear, eMonth, eDay, eHour, eMinute,eSecond};
 
 
 //State Management
@@ -91,49 +96,56 @@ byte underscore[8] = {
 
 
 
-
+\
 void setup()
 {
   Serial.begin(57600);
   pl();
-  pl("******Arduino Restart*******");
+  pl("********ARDUINO RESTART*******");
   
   InitializeLCD();
   InitializeClock();
   InitializeAtariJoystick();
-      
+
   GLOBAL_STATE = eCountdown;
   RUNNING_STATE = eStarting;
   DISPLAY_STATE = eGlobal;
-  
-  
-//  //SET GLOBAL TIME to PC time (time snapshot written as constants into progmem)
-//  clock.adjust(DateTime(__DATE__, __TIME__));
 
-//  //SET TARGET TIME
-//  pl("Setting Target Time")
-//  targetTime = DateTime(13, 01, 8, 17, 0, 0);
-//  TargetTimeWriteEeprom();
-  
+
+  //  //SET GLOBAL TIME to PC time (time snapshot written as constants into progmem)
+  //  clock.adjust(DateTime(__DATE__, __TIME__));
+
+  //  //SET TARGET TIME
+  //  pl("Setting Target Time")
+  //  targetTime = DateTime(13, 01, 8, 17, 0, 0);
+  //  TargetTimeWriteEeprom();
+
   pl("Getting Saved Target Time");
   TargetTimeReadEeprom(); //get the stored target time out of non volitile storage.
   SerialDisplayTargetTime();
   delay(1000);
-
 }
+
+
 
 
 void loop()
 {
+
+  
   pl("Start Loop");
 
   //StateManagement
-  if(GLOBAL_STATE == eCountdown) {Countdown();}
-  else if (GLOBAL_STATE == eSetGlobalTime) {SetGlobalTime();}
-  else if (GLOBAL_STATE == eSetTargetTime) {SetTargetTime();}
-  
-  //DevDisplay();
-  
+  if(GLOBAL_STATE == eCountdown) {
+    Countdown();
+  }
+  else if (GLOBAL_STATE == eSetGlobalTime) {
+    SetGlobalTime();
+  }
+  else if (GLOBAL_STATE == eSetTargetTime) {
+    SetTargetTime();
+  }
+
   delay(mainLoopDelayMS);
   pl();
 }
@@ -146,56 +158,97 @@ void loop()
 
 
 
+
 //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES 
 //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES 
 //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES //ACTION MAIN STATES 
 
 
 
- 
- void Countdown()
+
+void Countdown()
 {
   pl("Countdown");
   GetGlobalTime();
-  
+
   //Process
-  
-   UpdateCountDownDisplay();
+
+  UpdateCountDownDisplay();
 }
+
+
 
 void SetGlobalTime()
 {
   pl("Enter SetGLobalTime");
 
-  
-  //NEED TO IMPLEMENT CURSOR HERE 
   while (ATARI_JOYSTICK == eCentre && GLOBAL_STATE == eSetGlobalTime) //wait for input
-    {
-        pl("Waiting For Input Loop");
-        
-        //Display The current Global Time
-        lcd.clear();
-        GetGlobalTime();
-        LCDDisplayGlobalTimeSet();
-        
-        //Set the cursor to the first position
-        SetCursorPositionForSetTimeFocus();
-        lcd.blink();
-        delay(mainLoopDelayMS);
-    }
-    
-    lcd.clear();
-    
+  {
+    pl("Waiting For Input Loop");
+
+    //Display The current Global Time
+    GetGlobalTime();
+    LCDDisplayGlobalTimeSet();
+
+    //Set the cursor to the first position
+    SetCursorPositionForSetTimeFocus();
+    lcd.blink();
+    delay(mainLoopDelayMS/2);
+
+
+
+  }
+
+  lcd.clear();
+
   pl("SetGLobalTime - Post While Loop");
   switch(ATARI_JOYSTICK) {
   case eLeft:
-    lcd.print("Left");
-    delay(500);
+    switch (SET_TIME_FOCUS) 
+    {
+    case eHour:
+      SET_TIME_FOCUS = eYear;
+      break;
+    case eYear:
+      SET_TIME_FOCUS = eDay;
+      break;
+    case eDay:
+      SET_TIME_FOCUS = eMonth;
+      break;  
+    case eMonth:
+      SET_TIME_FOCUS = eSecond;
+      break;
+    case eSecond:
+      SET_TIME_FOCUS = eMinute;
+      break;
+    case eMinute:
+      SET_TIME_FOCUS = eHour;
+      break;
+    }
     ClearAtariJoystickBuffer();
     break;
   case eRight:
-    lcd.print("RIght");
-    delay(500);
+    switch (SET_TIME_FOCUS) 
+    {
+    case eHour:
+      SET_TIME_FOCUS = eMinute;
+      break;
+    case eMinute:
+      SET_TIME_FOCUS = eSecond;
+      break;
+    case eSecond:
+      SET_TIME_FOCUS = eDay;
+      break;  
+    case eDay:
+      SET_TIME_FOCUS = eMonth;
+      break;
+    case eMonth:
+      SET_TIME_FOCUS = eYear;
+      break;
+    case eYear:
+      SET_TIME_FOCUS = eHour;
+      break;
+    }
     ClearAtariJoystickBuffer();
     break;
   case eUp:
@@ -232,29 +285,6 @@ void SetTargetTime()
 //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE //ACTION CODE 
 
 
-void UpdateTimeWithJoystick()
-{
-  
-   
-  switch (SET_TIME_FOCUS) {
-    case eYear:
-      
-      break;
-    case eMonth:
-      
-      break;
-     case eDay:
-      
-      break;
-     case eHour:
-       
-      break;
-     case eMinute:
-      
-      break;
-  }
-}
-
 
 
 
@@ -262,22 +292,28 @@ void UpdateCountDownDisplay()
 {
   //Update Display
 
-   if(cyclesSinceLastDisplayToggle > displayToggleCycles)//Time to change display, uses a display state
-   {
-     pl("*Change Global Display - Update Timer");
-     if(DISPLAY_STATE == eGlobal){DISPLAY_STATE=eTarget;}
-     else{DISPLAY_STATE=eGlobal;}
-     cyclesSinceLastDisplayToggle = 0; //reset the counter
-   }
-   
-   pl("Updating CountDown Display");
-   if(DISPLAY_STATE == eGlobal) {LCDDisplayGlobalTime();}
-   else{LCDDisplayTargetTime();}
-   
-   cyclesSinceLastDisplayToggle++;
+    if(cyclesSinceLastDisplayToggle > displayToggleCycles)//Time to change display, uses a display state
+  {
+    pl("*Change Global Display - Update Timer");
+    if(DISPLAY_STATE == eGlobal){
+      DISPLAY_STATE=eTarget;
+    }
+    else{
+      DISPLAY_STATE=eGlobal;
+    }
+    cyclesSinceLastDisplayToggle = 0; //reset the counter
+  }
+
+  pl("Updating CountDown Display");
+  if(DISPLAY_STATE == eGlobal) {
+    LCDDisplayGlobalTime();
+  }
+  else{
+    LCDDisplayTargetTime();
+  }
+
+  cyclesSinceLastDisplayToggle++;
 }
-
-
 
 
 void SerialDisplayGlobalTime()
@@ -298,15 +334,5 @@ void SerialDisplayTargetTime()
   pl(targetTime.toString(buf,len));
 }
 
-void DevDisplay()
-{
-   LCDDisplayGlobalTime();
-  
-//  //Show EEPROM data
-//  Serial.println(EEPROM.read(Tyear));
-//  Serial.println(EEPROM.read(Tmonth));
-//  Serial.println(EEPROM.read(Tday));
-//  Serial.println(EEPROM.read(Thour));
-//  Serial.println(EEPROM.read(Tminute));
-//  Serial.println(EEPROM.read(Tsecond));
-}
+
+
