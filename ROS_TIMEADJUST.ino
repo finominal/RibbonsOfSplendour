@@ -85,7 +85,7 @@ DateTime AdjustClockDown(DateTime timeToAdjust)
 switch(SET_TIME_FOCUS){
   
   case eYear:
-    timeToAdjust.yOff--;
+    if(timeToAdjust.yOff > 2000){timeToAdjust.yOff--; } // limits year to minimum of 2000 which is used as the reference point for datediff();
     break;
     
   case eMonth:
@@ -172,3 +172,23 @@ DateTime CheckMonthDateIsValid(DateTime timeToAdjust)
 return timeToAdjust;
 }
 
+
+
+
+
+
+//helpers in case the joystick time set isnt working
+
+  //  //SET GLOBAL TIME to PC time (time snapshot written as constants into progmem)
+//void SetGlobalClockToPCTime()
+//{
+//    clock.adjust(DateTime(__DATE__, __TIME__));
+//}
+//
+//  //SET TARGET TIME
+//void SetTargetTimeManually()
+//{
+//  targetTime = DateTime(13, 01, 8, 17, 0, 0);
+//  TargetTimeWriteEeprom();
+//  TargetTimeReadEeprom();
+//}

@@ -1,11 +1,11 @@
 void TargetTimeWriteEeprom()
 {
-  EEPROM.write(eepTargetYear,targetTime.yOff);
-  EEPROM.write(eepTargetMonth,targetTime.m);
-  EEPROM.write(eepTargetDay,targetTime.d);
-  EEPROM.write(eepTargetHour,targetTime.hh);
-  EEPROM.write(eepTargetMinute,targetTime.mm);
-  EEPROM.write(eepTargetSecond,targetTime.ss);
+  EEPROM.write(eepTargetYear,targetTime.year());
+  EEPROM.write(eepTargetMonth,targetTime.month());
+  EEPROM.write(eepTargetDay,targetTime.day());
+  EEPROM.write(eepTargetHour,targetTime.hour());
+  EEPROM.write(eepTargetMinute,targetTime.minute());
+  EEPROM.write(eepTargetSecond,targetTime.second());
 }
 
 void TargetTimeReadEeprom()
