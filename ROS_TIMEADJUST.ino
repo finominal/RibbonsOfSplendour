@@ -5,7 +5,9 @@ DateTime AdjustClockUp(DateTime timeToAdjust)
 switch(SET_TIME_FOCUS){
   
   case eYear:
+    p("YearBeforeAdjustUp="); pl(timeToAdjust.yOff);
     timeToAdjust.yOff++;
+    p("YearAfterAdjustUp="); pl(timeToAdjust.yOff);
     break;
     
   case eMonth:
@@ -85,7 +87,9 @@ DateTime AdjustClockDown(DateTime timeToAdjust)
 switch(SET_TIME_FOCUS){
   
   case eYear:
-    if(timeToAdjust.yOff > 2000){timeToAdjust.yOff--; } // limits year to minimum of 2000 which is used as the reference point for datediff();
+      p("YearBeforeAdjustDown="); pl(timeToAdjust.yOff);
+    if(timeToAdjust.year() > 2000){timeToAdjust.yOff--; } // limits year to minimum of 2000 which is used as the reference point for datediff();
+        p("YearafterAdjustDown="); pl(timeToAdjust.yOff);
     break;
     
   case eMonth:
@@ -147,6 +151,7 @@ switch(SET_TIME_FOCUS){
       timeToAdjust.ss = 0;
       
     break;
+
 }
 
 return timeToAdjust;
@@ -177,18 +182,18 @@ return timeToAdjust;
 
 
 
-//helpers in case the joystick time set isnt working
+//helpers to set the time in case the joystick isnt working
 
   //  //SET GLOBAL TIME to PC time (time snapshot written as constants into progmem)
-//void SetGlobalClockToPCTime()
-//{
-//    clock.adjust(DateTime(__DATE__, __TIME__));
-//}
-//
-//  //SET TARGET TIME
-//void SetTargetTimeManually()
-//{
-//  targetTime = DateTime(13, 01, 8, 17, 0, 0);
-//  TargetTimeWriteEeprom();
-//  TargetTimeReadEeprom();
-//}
+void SetGlobalClockToPCTime()
+{
+    clock.adjust(DateTime(__DATE__, __TIME__));
+}
+
+  //SET TARGET TIME
+void SetTargetTimeManually()
+{
+  targetTime = DateTime(13, 01, 15, 17, 0, 0);
+  TargetTimeWriteEeprom(); //check if this is working ok....
+  TargetTimeReadEeprom();
+}

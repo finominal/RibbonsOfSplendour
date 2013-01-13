@@ -30,6 +30,8 @@ void AtariJoystickUP();
 void AtariJoystickDOWN();
 void AtariJoystickRIGHT();
 void ClearAtariJoystickBuffer();
+void SerialDisplayDev();
+void DisplayMoveTo(Display displayTarget);
 
 //Helpers
 #define p(x) Serial.print(x);
@@ -39,7 +41,7 @@ void ClearAtariJoystickBuffer();
 #define SPI_CS 53
 
 //EEPROM Tartet Time Locations
-#define eepTargetYear 4000 //2000 and ...
+#define eepTargetYear 4000
 #define eepTargetMonth 4001
 #define eepTargetDay 4002
 #define eepTargetHour 4003
@@ -51,7 +53,7 @@ void ClearAtariJoystickBuffer();
 enum GlobalState {
   eBooting, eCountdown, eSetGlobalTime, eSetTargetTime};
 enum RunningState {
-  eStarting, eRunning, eFinished};
+  eStarting, ePreparing, eSynching, eRunning, eZeroing, eFinished};
 enum RunningDisplayState {
   eGlobal, eTarget};
 enum AtariJoystick {
@@ -69,13 +71,23 @@ SetTimeFocus SET_TIME_FOCUS;
 
 
 //Declare Library Classes
-LiquidCrystal lcd(34, 36, 38, 40, 42, 44);
 RTC_DS3234 clock(SPI_CS);
+
+LiquidCrystal lcd(34, 36, 38, 40, 42, 44);
+// * LCD RS pin to digital pin 34
+// * LCD Enable pin to digital pin 36
+// * LCD D4 pin to digital pin 38
+// * LCD D5 pin to digital pin 40
+// * LCD D6 pin to digital pin 42
+// * LCD D7 pin to digital pin 44
+// * LCD R/W pin to ground
+// http://www.halted.com/objects/catalog/product/extras/25549_22687_LCD%20GTC-1602.pdf
+
 
 //Program Variables
 DateTime globalTime; 
 DateTime targetTime;
-Display displayTime;
+Display displayTarget;
 char lcdLine1[17];
 char lcdLine2[17];
 const float mainLoopDelayMS = 200;
@@ -83,8 +95,8 @@ const float mainLoopDelayMS = 200;
 //display helpers (for toggling what is on the display)
 unsigned int cyclesSinceLastDisplayToggle;
 const int displayToggleTimeSeconds = 5; //THis valued determins how long the running display will toggle for.
-int displayToggleCycles = displayToggleTimeSeconds * ( 1000 / mainLoopDelayMS); //calcuate cycles dynamically
-
+const int displayToggleCycles = displayToggleTimeSeconds * ( 1000 / mainLoopDelayMS); //calcuate cycles dynamically
+const int DisplayLeadTimeSeconds = 180;
 
 //Custom Font
 byte underscore[8] = {
@@ -116,15 +128,17 @@ void setup()
   RUNNING_STATE = eStarting;
   DISPLAY_STATE = eGlobal;
 
+  //SetTargetTimeManually();
+ 
   pl("Getting Saved Target Time");
+
   TargetTimeReadEeprom(); //get the stored target time out of non volitile storage.
   SerialDisplayTargetTime();
-  delay(1000);
+  delay(100);
+  
 }
 
 
-DateTime firstTime = DateTime(2013,01,01,12,0,0); 
-DateTime secondTime = DateTime(2013,01,01,12,10,0);
 
 
 
@@ -132,22 +146,21 @@ void loop()
 {
   pl("Start Loop");
 
-  displayTime =  CalculateCountdownTime(firstTime, secondTime);
-  SerialDisplayCountdownTime( displayTime );
+  //StateManagement
+  if(GLOBAL_STATE == eCountdown) {
+    Countdown();
+  }
+  else if (GLOBAL_STATE == eSetGlobalTime) {
+    SetGlobalTime();
+  }
+  else if (GLOBAL_STATE == eSetTargetTime) {
+    SetTargetTime();
+  }
 
-//  //StateManagement
-//  if(GLOBAL_STATE == eCountdown) {
-//    Countdown();
-//  }
-//  else if (GLOBAL_STATE == eSetGlobalTime) {
-//    SetGlobalTime();
-//  }
-//  else if (GLOBAL_STATE == eSetTargetTime) {
-//    SetTargetTime();
-//  }
-//
   delay(mainLoopDelayMS);
   pl();
+  
+  SerialDisplayDev();
 }
 
 

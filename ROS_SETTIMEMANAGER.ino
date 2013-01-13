@@ -102,12 +102,12 @@ void ShiftTimeFocusRight()
       SET_TIME_FOCUS = eSecond;
       break;
     case eSecond:
-      SET_TIME_FOCUS = eDay;
-      break;  
-    case eDay:
       SET_TIME_FOCUS = eMonth;
-      break;
+      break;  
     case eMonth:
+      SET_TIME_FOCUS = eDay;
+      break;
+    case eDay:
       SET_TIME_FOCUS = eYear;
       break;
     case eYear:

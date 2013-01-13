@@ -1,37 +1,10 @@
-
-
-void AtariRedButtonPressed()
+void InitializeAtariJoystick()
 {
-  if(GLOBAL_STATE == eCountdown)
-  {
-    GLOBAL_STATE = eSetGlobalTime; 
-    ClearAtariJoystickBuffer(); //make sure there are no joystick registeres 
-    SET_TIME_FOCUS = eHour;    
-    return;
-  }
-  
-  if(GLOBAL_STATE == eSetGlobalTime)
-  {
-    GLOBAL_STATE = eSetTargetTime; 
-    ClearAtariJoystickBuffer();
-    SET_TIME_FOCUS = eHour; 
-    return;
-  }
-
-  if(GLOBAL_STATE == eSetTargetTime)
-  {
-    GLOBAL_STATE = eCountdown; 
-    return;
-  }
+  //set joystick interrupts  
+  attachInterrupt(0, AtariRedButtonPressed, FALLING); //pin 2
+  attachInterrupt(5, AtariJoystickLEFT, FALLING); //pin 18
+  attachInterrupt(4, AtariJoystickUP, FALLING);  //pin 19 
+  attachInterrupt(3, AtariJoystickDOWN, FALLING); //pin 20
+  attachInterrupt(2, AtariJoystickRIGHT, FALLING); //pin 21
 }
-
-void AtariJoystickLEFT(){ATARI_JOYSTICK = eLeft;}
-
-void AtariJoystickUP(){ATARI_JOYSTICK = eUp;}
-
-void AtariJoystickDOWN(){ATARI_JOYSTICK = eDown;}
-
-void AtariJoystickRIGHT(){ATARI_JOYSTICK = eRight;}
-
-void ClearAtariJoystickBuffer(){ATARI_JOYSTICK = eCentre;}
-
+//http://arduino.cc/en/Main/ArduinoBoardMega Lookup Interrupts

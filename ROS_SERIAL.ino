@@ -24,4 +24,21 @@ void SerialDisplayCountdownTime(Display disp)
    char buf[bufLen];
    pl(disp.toString(buf, bufLen));
 }
+ 
+void SerialDisplayEeprom()
+{
+  p("eepTargetYear=");  pl(EEPROM.read(eepTargetYear));
+  p("eepTargetMonth=");  pl( EEPROM.read(eepTargetMonth));
+  p("eepTargetDay=");  pl(  EEPROM.read(eepTargetDay));
+  p("eepTargetHour=");  pl(  EEPROM.read(eepTargetHour));
+  p("eepTargetMinute=");  pl(  EEPROM.read(eepTargetMinute));
+  p("eepTargetSecond=");  pl(  EEPROM.read(eepTargetSecond));
+}
 
+
+void SerialDisplayDev()
+{
+  SerialDisplayGlobalTime();
+  SerialDisplayTargetTime();
+  SerialDisplayEeprom();
+}

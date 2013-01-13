@@ -28,5 +28,3 @@ Display SecondsToDateTime(long seconds)
 
   return result;
 }  
-
-  
