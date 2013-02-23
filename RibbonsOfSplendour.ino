@@ -49,6 +49,7 @@ void DisplayMoveTo(Display displayTarget);
 #define eepTargetSecond 4005
 
 
+
 //Enumerators 
 enum GlobalState {
   eBooting, eCountdown, eSetGlobalTime, eSetTargetTime};
@@ -91,24 +92,13 @@ Display displayTarget;
 char lcdLine1[17];
 char lcdLine2[17];
 const float mainLoopDelayMS = 200;
+const int displayCharacterCount = 9;
 
 //display helpers (for toggling what is on the display)
 unsigned int cyclesSinceLastDisplayToggle;
 const int displayToggleTimeSeconds = 5; //THis valued determins how long the running display will toggle for.
 const int displayToggleCycles = displayToggleTimeSeconds * ( 1000 / mainLoopDelayMS); //calcuate cycles dynamically
 const int DisplayLeadTimeSeconds = 180;
-
-//Custom Font
-byte underscore[8] = {
-  0b11111,
-  0b11111,
-  0b00000,
-  0b00000,
-  0b00000,
-  0b00000,
-  0b00000,
-  0b00000
-};
 
 
 
@@ -123,6 +113,7 @@ void setup()
   InitializeLCD();
   InitializeClock();
   InitializeAtariJoystick();
+  InitializeCustomPWM();
 
   GLOBAL_STATE = eCountdown;
   RUNNING_STATE = eStarting;
