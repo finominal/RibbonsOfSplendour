@@ -1,4 +1,5 @@
 #include <ROSDisplay.h>
+#include <ROSRibbon.h>
 
 #include <SPI.h>
 #include <Wire.h>
@@ -18,7 +19,7 @@ void LCDDisplayTargetTime();
 void LCDDisplayGlobalTime();
 void LCDDisplayGlobalTimeSet();
 void GetGlobalTime();
-void UpdateCountDownDisplay();
+void UpdateLCDCountDownDisplay();
 void SetTargetTime();
 void SetGlobalTime();
 void Countdown();
@@ -49,12 +50,11 @@ void DisplayMoveTo(Display displayTarget);
 #define eepTargetSecond 4005
 
 
-
 //Enumerators 
 enum GlobalState {
-  eBooting, eCountdown, eSetGlobalTime, eSetTargetTime};
+  eBooting, eCountdown, eSetGlobalTime, eSetTargetTime, eCompleted};
 enum RunningState {
-  eStarting, ePreparing, eSynching, eRunning, eZeroing, eFinished};
+  eStarting, ePreparing, eSynching, eRunning,eMoving, eZeroing, eTargetMet, eFinished};
 enum RunningDisplayState {
   eGlobal, eTarget};
 enum AtariJoystick {
@@ -92,7 +92,13 @@ Display displayTarget;
 char lcdLine1[17];
 char lcdLine2[17];
 const float mainLoopDelayMS = 200;
-const int displayCharacterCount = 9;
+
+//Ribbons
+const int ribbonCount = 2;
+Ribbon RIBBONS[ribbonCount];
+
+//PWM 
+int globalPWMCycle = 0;
 
 //display helpers (for toggling what is on the display)
 unsigned int cyclesSinceLastDisplayToggle;
@@ -100,7 +106,12 @@ const int displayToggleTimeSeconds = 5; //THis valued determins how long the run
 const int displayToggleCycles = displayToggleTimeSeconds * ( 1000 / mainLoopDelayMS); //calcuate cycles dynamically
 const int DisplayLeadTimeSeconds = 180;
 
+//Sensor Management
+const int SensorCount =3;
+const int SensorThreshold = 512;
 
+int SensorsData[SensorCount]; 
+int SensorsClock[SensorCount];
 
 
 
@@ -109,12 +120,16 @@ void setup()
   Serial.begin(57600);
   pl();
   pl("********ARDUINO RESTART*******");
+  //InitializeLCD();
+  //InitializeClock();
+  //InitializeAtariJoystick();
+  //InitializeMuxes(); //sensors
+  delay(1000);
+  InitializeInterruptTimerZero(); //PWM
+  delay(1000);
+  pl("InitializeAllComplete");
   
-  InitializeLCD();
-  InitializeClock();
-  InitializeAtariJoystick();
-  InitializeCustomPWM();
-
+/*
   GLOBAL_STATE = eCountdown;
   RUNNING_STATE = eStarting;
   DISPLAY_STATE = eGlobal;
@@ -126,10 +141,8 @@ void setup()
   TargetTimeReadEeprom(); //get the stored target time out of non volitile storage.
   SerialDisplayTargetTime();
   delay(100);
-  
+  */
 }
-
-
 
 
 
@@ -139,7 +152,7 @@ void loop()
 
   //StateManagement
   if(GLOBAL_STATE == eCountdown) {
-    Countdown();
+    RunCountdownProgram();
   }
   else if (GLOBAL_STATE == eSetGlobalTime) {
     SetGlobalTime();
@@ -147,7 +160,10 @@ void loop()
   else if (GLOBAL_STATE == eSetTargetTime) {
     SetTargetTime();
   }
-
+  else if (GLOBAL_STATE == eFinished)
+  {
+    MoveToZero();
+  }
   delay(mainLoopDelayMS);
   pl();
   

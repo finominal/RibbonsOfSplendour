@@ -1,87 +1,75 @@
-
-
-void Countdown()
+void RunCountdownProgram()
 {
-  pl("Countdown");
   
-  GetGlobalTime();
-
-  //MAIN PROCESSING
-  //Perform Action based on current running state:
-  if (RUNNING_STATE == eStarting)
+  while(GLOBAL_STATE == eCountdown)
   {
-    pl("RunningState=eStarting");
-    DetermineState();
+    UpdateLCDCountDownDisplay();
+    SetDisplayTargetTime(); 
+    UpdateRibbonTargets();
+    MoveToTarget();
+    CheckForCompletion(); //will change GLOBAL_STATE to exit this loop
   }
-  else if (RUNNING_STATE == ePreparing)
-  {
-    pl("RunningState=ePreparing");
-  }
-   else if (RUNNING_STATE == eSynching)
-  {
-    pl("RunningState=eSynching");
-  }
-  else if (RUNNING_STATE == eRunning)
-  {
-    pl("RunningState=eRunning");
-  }
-  else if (RUNNING_STATE == eZeroing)
-  {
-    pl("RunningState=eZeroing");
-    DisplayZeroCountdown();
-    RUNNING_STATE = eFinished;
-  }
-  else if (RUNNING_STATE == eFinished)
-  {
-    pl("RunningState=eFinished");
-    //do nothing
-  }
-
-
-  UpdateCountDownDisplay();
 }
 
-void DetermineState()
+void SetDisplayTargetTime()
 {
-  if( globalTime.secondstime() + DisplayLeadTimeSeconds < targetTime.secondstime()  ) //if we are greater than lead time away from the end. (lead time is time to roll display and wait for sync)
-  {
-    RUNNING_STATE = ePreparing;
-  }
-  else 
-  {
-    RUNNING_STATE = eZeroing;
-  }
+  //SHIT!
+}
 
+void UpdateRibbonTargets()
+{
+  
+  RUNNING_STATE = eMoving;
+}
+
+void MoveToTarget()
+{
+  while(RUNNING_STATE == eMoving)
+  {
+    UpdatePWMs();
+    CheckForTargetMet();
+  }
+}
+
+void CheckForCompletion()
+{
+  if(targetTime.secondstime() <  globalTime.secondstime())
+  {
+    GLOBAL_STATE = eCompleted;
+  }
 }
 
 
-void UpdateCountDownDisplay()
+void UpdatePWMs()
 {
-  //Update Display
-  
-  
-
-
-    if(cyclesSinceLastDisplayToggle > displayToggleCycles)//Time to change display, uses a display state
+   for(int i = 0; i < ribbonCount; i++)
   {
-    pl("*Change Global Display - Update Timer");
-    if(DISPLAY_STATE == eGlobal){
-      DISPLAY_STATE=eTarget;
+    if(RIBBONS[i].targetDisplay == RIBBONS[i].currentdisplay) 
+    { RIBBONS[i].pwmDuty = 0; }
+    else 
+    { RIBBONS[i].pwmDuty = 4; }
+  }
+}
+
+void MoveToZero()
+{
+  //ToDo: Implement
+}
+
+void CheckForTargetMet()
+{
+  //check every target value to see if the round is completed
+  for(int i = 0; i < ribbonCount; i++)
+  {
+    if(RIBBONS[i].targetDisplay != RIBBONS[i].currentdisplay)
+    {
+      return;
     }
-    else{
-      DISPLAY_STATE=eGlobal;
-    }
-    cyclesSinceLastDisplayToggle = 0; //reset the counter
   }
-
-  pl("Updating CountDown Display");
-  if(DISPLAY_STATE == eGlobal) {
-    LCDDisplayGlobalTime();
-  }
-  else{
-    LCDDisplayTargetTime();
-  }
-
-  cyclesSinceLastDisplayToggle++;
+  //if all targets are met, change the runing state
+  RUNNING_STATE == eTargetMet;
 }
+
+
+
 
