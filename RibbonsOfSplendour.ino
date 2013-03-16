@@ -102,8 +102,8 @@ int globalPWMCycle = 0;
 
 //display helpers (for toggling what is on the display)
 unsigned int cyclesSinceLastDisplayToggle;
-const int displayToggleTimeSeconds = 5; //THis valued determins how long the running display will toggle for.
-const int displayToggleCycles = displayToggleTimeSeconds * ( 1000 / mainLoopDelayMS); //calcuate cycles dynamically
+const int displayToggleTimeSeconds = 5; //This valued determins how long the running display will toggle for.
+const int displayToggleCycles = displayToggleTimeSeconds * 15; //the multiplier will change depending on the time to processing one loop of the sensors.
 const int DisplayLeadTimeSeconds = 180;
 
 //Sensor Management
@@ -120,34 +120,34 @@ void setup()
   Serial.begin(57600);
   pl();
   pl("********ARDUINO RESTART*******");
-  //InitializeLCD();
-  //InitializeClock();
-  //InitializeAtariJoystick();
-  //InitializeMuxes(); //sensors
-  delay(1000);
-  InitializeInterruptTimerZero(); //PWM
-  delay(1000);
-  pl("InitializeAllComplete");
+  InitializeLCD();
+  InitializeClock();
+  InitializeAtariJoystick();
+  InitializeMuxes(); //sensors
+  //InitializeInterruptTimerOne(); //PWM
+  pl("InitializeAllComplete!");
   
-/*
   GLOBAL_STATE = eCountdown;
   RUNNING_STATE = eStarting;
   DISPLAY_STATE = eGlobal;
 
-  //SetTargetTimeManually();
- 
-  pl("Getting Saved Target Time");
-
+  //SetTargetTimeManually(); 
+  pl();
+  pl("Retrieving Saved Target Time");
   TargetTimeReadEeprom(); //get the stored target time out of non volitile storage.
   SerialDisplayTargetTime();
   delay(100);
-  */
+  
+  pl("Startup Completed OK !");
+  pl();
+  
 }
 
 
 
 void loop()
 {
+
   pl("Start Loop");
 
   //StateManagement
@@ -168,6 +168,7 @@ void loop()
   pl();
   
   SerialDisplayDev();
+  
 }
 
 

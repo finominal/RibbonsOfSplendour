@@ -121,5 +121,4 @@ void InitializeMuxes()
   DDRA = B11111111; //pins 22-29 output (port A) both MUXs are connected, 22-25,26-29
   PORTA = 0;
   pl("InitilaizeMuxes_OK!");
-  delay(1000);
 }

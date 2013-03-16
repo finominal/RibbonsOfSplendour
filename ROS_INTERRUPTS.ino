@@ -7,33 +7,18 @@ void InitializeAtariJoystick()
   attachInterrupt(4, AtariJoystickUP, FALLING);  //pin 19 
   attachInterrupt(3, AtariJoystickDOWN, FALLING); //pin 20
   attachInterrupt(2, AtariJoystickRIGHT, FALLING); //pin 21
-  pl("InitializeJoystick_Intertupts_OK!");
-  delay(1000);
+  pl("InitializeJoystick_Intertupts_OK");
 }
 //http://arduino.cc/en/Main/ArduinoBoardMega Lookup Interrupts
 
 
 
-void InitializeInterruptTimerZero()
+void InitializeInterruptTimerOne()
 {
-  pl("InitializeInterruptTimerZero");
+  pl("InitializeInterruptTimerOne");
    
   cli();//stop interrupts
 
-//  //set timer0 interrupt at 2kHz
-//  TCCR1A = 0;// set entire TCCR0A register to 0
-//  TCCR1B = 0;// same for TCCR0B
-//  TCNT0  = 0;//initialize counter value to 0
-//  
-//    
-//  // set compare match register for 2khz increments
-//  OCR0A = 50 ;// = (16*10^6) / (2000*64) - 1 (must be <256)
-//  // turn on CTC mode
-//  TCCR0A |= (1 << WGM01);
-//  // Set CS11 and CS10 bits for 64 prescaler
-//  TCCR0B |= (1 << CS11) | (1 << CS10);   
-//  // enable timer compare interrupt
-//  TIMSK0 |= (1 << OCIE0A);
   
   TCCR1A = 0;     // set entire TCCR1A register to 0
   TCCR1B = 0;     // same for TCCR1B
@@ -51,16 +36,15 @@ void InitializeInterruptTimerZero()
   // enable timer compare interrupt:
   TIMSK1 |= (1 << OCIE1A);
   
+  //sei();
   
-  sei();
-  
-  pl("InitializeInterruptTimerZero_OK!");
-  delay(1000);
+  pl("InitializeInterruptTimerOne_OK");
 }
+
 
 //handle timer Zero Trigger
 ISR(TIMER1_COMPA_vect){
-  
+  pl("TIMER1_COMPA_vect");
   ItteratePWM();
 
 }

@@ -16,9 +16,14 @@ void InitializeLCD()
 
 void UpdateLCDCountDownDisplay() 
 {
+  
+  p("cyclesSinceLastDisplayToggle="); pl("cyclesSinceLastDisplayToggle");
+  p("displayToggleCycles="); pl(cyclesSinceLastDisplayToggle);
+  
+  pl("    UpdateLCDCountDownDisplay");
   if(cyclesSinceLastDisplayToggle > displayToggleCycles)//Time to change display, uses a display state
   {
-    pl("*Change Global Display - Update Timer");
+    pl("    Change Global Display - Update Timer");
     if(DISPLAY_STATE == eGlobal){
       DISPLAY_STATE=eTarget;
     }
@@ -28,7 +33,7 @@ void UpdateLCDCountDownDisplay()
     cyclesSinceLastDisplayToggle = 0; //reset the counter
   }
 
-  pl("Updating CountDown Display");
+  pl("    Updating Display");
   if(DISPLAY_STATE == eGlobal) {
     LCDDisplayGlobalTime();
   }
@@ -37,6 +42,7 @@ void UpdateLCDCountDownDisplay()
   }
 
   cyclesSinceLastDisplayToggle++;
+ pl("    CompletedDisplayUpdate");
 }
 
 
