@@ -1,12 +1,12 @@
-void InitializeAtariJoystick()
+void InitializeJoystick()
 {
   //set joystick interrupts  
   pl("InitializeJoystick_Intertupts");
-  attachInterrupt(0, AtariRedButtonPressed, FALLING); //pin 2
-  attachInterrupt(5, AtariJoystickLEFT, FALLING); //pin 18
-  attachInterrupt(4, AtariJoystickUP, FALLING);  //pin 19 
-  attachInterrupt(3, AtariJoystickDOWN, FALLING); //pin 20
-  attachInterrupt(2, AtariJoystickRIGHT, FALLING); //pin 21
+  attachInterrupt(0, JoystickRedButtonPressed, FALLING); //pin  = Red Button
+  attachInterrupt(5, JoystickLEFT, FALLING); //pin 18
+  attachInterrupt(4, JoystickUP, FALLING);  //pin 19 
+  attachInterrupt(3, JoystickDOWN, FALLING); //pin 20
+  attachInterrupt(2, JoystickRIGHT, FALLING); //pin 21
   pl("InitializeJoystick_Intertupts_OK");
 }
 //http://arduino.cc/en/Main/ArduinoBoardMega Lookup Interrupts

@@ -4,7 +4,7 @@ void SetGlobalTime()
 {
   pl("Enter SetGLobalTime");
 
-  while (ATARI_JOYSTICK == eCentre && GLOBAL_STATE == eSetGlobalTime) //wait for input
+  while (JOYSTICK_STATE == eCentre && GLOBAL_STATE == eSetGlobalTime) //wait for input
   {
     pl("Waiting For Input Loop");
 
@@ -22,24 +22,24 @@ void SetGlobalTime()
   lcd.clear();
 
   pl("SetGLobalTime - Post While Loop");
-  switch(ATARI_JOYSTICK) {
+  switch(JOYSTICK_STATE) {
   case eLeft:
     ShiftTimeFocusLeft();
-    ClearAtariJoystickBuffer();
+    ClearJoystickBuffer();
     break;
   case eRight:
     ShiftTimeFocusRight();
-    ClearAtariJoystickBuffer();
+    ClearJoystickBuffer();
     break;
   case eUp:
     globalTime = AdjustClockUp(globalTime);
     clock.adjust(globalTime);
-    ClearAtariJoystickBuffer();
+    ClearJoystickBuffer();
     break;
   case eDown:
     globalTime = AdjustClockDown(globalTime);
     clock.adjust(globalTime);
-    ClearAtariJoystickBuffer();
+    ClearJoystickBuffer();
     break;
   }
 }
@@ -50,7 +50,7 @@ void SetTargetTime()
 {
   pl("Enter TargetGLobalTime");
 
-  while (ATARI_JOYSTICK == eCentre && GLOBAL_STATE == eSetTargetTime) //wait for input
+  while (JOYSTICK_STATE == eCentre && GLOBAL_STATE == eSetTargetTime) //wait for input
   {
     pl("Waiting For Input (loop)");
 
@@ -67,26 +67,26 @@ void SetTargetTime()
   lcd.clear();
 
   pl("SetTargetTime-Navigation");
-  switch(ATARI_JOYSTICK) {
+  switch(JOYSTICK_STATE) {
   case eLeft:
     ShiftTimeFocusLeft();
-    ClearAtariJoystickBuffer();
+    ClearJoystickBuffer();
     break;
   case eRight:
     ShiftTimeFocusRight();
-    ClearAtariJoystickBuffer();
+    ClearJoystickBuffer();
     break;
   case eUp:
     targetTime = AdjustClockUp(targetTime);
     TargetTimeWriteEeprom();
     TargetTimeReadEeprom();
-    ClearAtariJoystickBuffer();
+    ClearJoystickBuffer();
     break;
   case eDown:
     targetTime = AdjustClockDown(targetTime);
     TargetTimeWriteEeprom();
     TargetTimeReadEeprom();
-    ClearAtariJoystickBuffer();
+    ClearJoystickBuffer();
     break;
   }
 }

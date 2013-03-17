@@ -1,11 +1,12 @@
 
 
-void AtariRedButtonPressed()
+void JoystickRedButtonPressed()
 {
-  if(GLOBAL_STATE == eCountdown)
+  pl("*IR_JoystickRedButtonPress");
+  if(GLOBAL_STATE == eCountdown || GLOBAL_STATE == eCompleted)
   {
     GLOBAL_STATE = eSetGlobalTime; 
-    ClearAtariJoystickBuffer(); //make sure there are no joystick registeres 
+    ClearJoystickBuffer(); //make sure there are no joystick registeres 
     SET_TIME_FOCUS = eHour;    
     return;
   }
@@ -13,7 +14,7 @@ void AtariRedButtonPressed()
   if(GLOBAL_STATE == eSetGlobalTime)
   {
     GLOBAL_STATE = eSetTargetTime; 
-    ClearAtariJoystickBuffer();
+    ClearJoystickBuffer();
     SET_TIME_FOCUS = eHour; 
     return;
   }
@@ -25,13 +26,13 @@ void AtariRedButtonPressed()
   }
 }
 
-void AtariJoystickLEFT(){ATARI_JOYSTICK = eLeft;}
+void JoystickLEFT(){pl("*IR_JoystickPress_LEFT"); JOYSTICK_STATE = eLeft;}
 
-void AtariJoystickUP(){ATARI_JOYSTICK = eUp;}
+void JoystickUP(){pl("*IR_JoystickPress_UP"); JOYSTICK_STATE = eUp;}
 
-void AtariJoystickDOWN(){ATARI_JOYSTICK = eDown;}
+void JoystickDOWN(){pl("*IR_JoystickPress_DOWN"); JOYSTICK_STATE = eDown;}
 
-void AtariJoystickRIGHT(){ATARI_JOYSTICK = eRight;}
+void JoystickRIGHT(){pl("*IR_JoystickPress_RIGHT"); JOYSTICK_STATE = eRight;}
 
-void ClearAtariJoystickBuffer(){ATARI_JOYSTICK = eCentre;}
+void ClearJoystickBuffer(){ JOYSTICK_STATE = eCentre;}
 

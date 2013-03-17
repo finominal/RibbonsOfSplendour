@@ -25,12 +25,12 @@ void SetGlobalTime();
 void Countdown();
 void InitializeClock();
 void InitializeLCD();
-void InitializeAtariJoystick();
-void AtariJoystickLEFT();
-void AtariJoystickUP();
-void AtariJoystickDOWN();
-void AtariJoystickRIGHT();
-void ClearAtariJoystickBuffer();
+void InitializeJoystick();
+void JoystickLEFT();
+void JoystickUP();
+void JoystickDOWN();
+void JoystickRIGHT();
+void ClearJoystickBuffer();
 void SerialDisplayDev();
 void DisplayMoveTo(Display displayTarget);
 
@@ -57,7 +57,7 @@ enum RunningState {
   eStarting, ePreparing, eSynching, eRunning,eMoving, eZeroing, eTargetMet, eFinished};
 enum RunningDisplayState {
   eGlobal, eTarget};
-enum AtariJoystick {
+enum Joystick {
   eCentre, eUp, eDown, eLeft, eRight};
 enum SetTimeFocus {
   eYear, eMonth, eDay, eHour, eMinute,eSecond};
@@ -67,7 +67,7 @@ enum SetTimeFocus {
 GlobalState GLOBAL_STATE;
 RunningState RUNNING_STATE;
 RunningDisplayState DISPLAY_STATE;
-AtariJoystick ATARI_JOYSTICK; 
+Joystick JOYSTICK_STATE; 
 SetTimeFocus SET_TIME_FOCUS;
 
 
@@ -122,7 +122,7 @@ void setup()
   pl("********ARDUINO RESTART*******");
   InitializeLCD();
   InitializeClock();
-  InitializeAtariJoystick();
+  InitializeJoystick();
   InitializeMuxes(); //sensors
   //InitializeInterruptTimerOne(); //PWM
   pl("InitializeAllComplete!");
@@ -138,6 +138,8 @@ void setup()
   SerialDisplayTargetTime();
   delay(100);
   
+   GetGlobalTime();
+  
   pl("Startup Completed OK !");
   pl();
   
@@ -147,27 +149,34 @@ void setup()
 
 void loop()
 {
-
+  pl();
   pl("Start Loop");
-
   //StateManagement
   if(GLOBAL_STATE == eCountdown) {
+    pl();
+    pl("~RunCountdownProgram");
     RunCountdownProgram();
   }
   else if (GLOBAL_STATE == eSetGlobalTime) {
+    pl("~SetGlobalTime");
     SetGlobalTime();
   }
   else if (GLOBAL_STATE == eSetTargetTime) {
+    pl("~SetTargetTime");
     SetTargetTime();
   }
-  else if (GLOBAL_STATE == eFinished)
+  else if (GLOBAL_STATE == eCompleted)
   {
+    pl("~eCompletedState");
     MoveToZero();
   }
+  else
+  {
+  pl("ERROR WITH GLOBAL STATE : Loop"); 
+  }
   delay(mainLoopDelayMS);
-  pl();
   
-  SerialDisplayDev();
+  //SerialDisplayDev();
   
 }
 
