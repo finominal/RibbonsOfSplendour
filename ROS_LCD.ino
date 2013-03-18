@@ -14,6 +14,24 @@ void InitializeLCD()
   delay(3000); //pause welcome screen
 }
 
+void LcdInformStartingCountdown()
+{
+  lcd.clear();
+  
+  char buf[21];
+  targetTime.toString(buf,21);
+   
+  //Update Display
+  //Line 1
+  lcd.setCursor(0, 0);
+  lcd.print("Preparing for");
+
+  //Line 2
+  lcd.setCursor(0, 1);
+  lcd.print("CountDown.");
+}
+
+
 void UpdateLCDCountDownDisplay() 
 {
   

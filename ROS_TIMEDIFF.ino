@@ -6,9 +6,7 @@
 
 Display CalculateCountdownTime(DateTime global, DateTime target)
 {
-  int long  difference;
-  difference = target.secondstime() -  global.secondstime();
-  return SecondsToDateTime(difference);
+  return SecondsToDateTime(target.secondstime() -  global.secondstime());
 }
  
 Display SecondsToDateTime(long seconds)
@@ -31,10 +29,10 @@ Display SecondsToDateTime(long seconds)
 
 Display TimeDiff_CalculateSyncTargetDisplay()
 {
-
+  return  SecondsToDateTime(globalTime.secondstime() +  countDownPrepLeadTimeSeconds);
 }
 
 bool IsTimeDiffEnoughForCountDown()
 {
-  return targetTime.secondstime() - countDownPrepLeadTimeSeconds > globalTime.secondstime() ;
+  return  globalTime.secondstime() +  countDownPrepLeadTimeSeconds >  targetTime.secondstime();
 }

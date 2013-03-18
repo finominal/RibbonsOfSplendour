@@ -54,7 +54,7 @@ void DisplayMoveTo(Display displayTarget);
 enum GlobalState {
   eBooting, eCountdown, eSetGlobalTime, eSetTargetTime, eCompleted, eParked};
 enum RunningState {
-  eStarting, ePreparing, eSynching, eRunning,eMoving, eZeroing, eTargetMet, eFinished};
+  eStarting, eSynching, eRunning, eMoving, eZeroing, eTargetMet, eFinished};
 enum RunningDisplayState {
   eGlobal, eTarget};
 enum Joystick {
@@ -136,9 +136,7 @@ void setup()
   pl("Retrieving Saved Target Time");
   TargetTimeReadEeprom(); //get the stored target time out of non volitile storage.
   SerialDisplayTargetTime();
-  delay(100);
-  
-   GetGlobalTime();
+  GetGlobalTime();
   
   pl("Startup Completed OK !");
   pl();

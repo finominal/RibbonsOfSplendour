@@ -7,36 +7,52 @@ void RunCountdownProgram()
     {
       if(IsTimeDiffEnoughForCountDown())
       {
-      PrepareDisplayForCountDown();
+        PrepareDisplayForCountDown(); 
       }
       else
       {
-        GLOBAL_STATE = eCompleted;
+        GLOBAL_STATE = eCompleted; //not enought time left to start up the sequence, or Timer has expired.
       }
+    }
+    else if(RUNNING_STATE == eSynching)
+    {
+      WaitForSync();
     }
     else
     {
-        ExecuteCountDownSequence();
+       ExecuteCountDownSequence();
     }
+  }
+}
+void WaitForSync()
+{
+  GetGlobalTime();
+  if(targetTime.secondstime() -  globalTime.secondstime() < 0) 
+  {
+    targetTime =  SecondsToDateTime((long)(globalTime.secondstime() + 1));
+    RUNNING_STATE == eRunning;
   }
 }
 
 void PrepareDisplayForCountDown()
 {
-  UpdateLCDCountDownDisplay();
-  TimeDiff_CalculateSyncTargetDisplay();
-  
+  RUNNING_STATE == eSynching;
+  LcdInformStartingCountdown();
+  displayTarget = TimeDiff_CalculateSyncTargetDisplay(); //calculate a waiting time to sync to.
+  displayTarget.second = 0; //Round down to the minute.
+  UpdateRibbonTargets();
+  MoveToTarget();
 }
 
 void ExecuteCountDownSequence()
 {
-      pl("CountingDownLoop")
-      UpdateLCDCountDownDisplay();
-      SetDisplayTarget(); 
-      UpdateRibbonTargets();
-      MoveToTarget();
-      CheckForCompletion(); //will change GLOBAL_STATE to exit this loop
-      delay(mainLoopDelayMS/10);
+  pl("CountingDownLoop")
+  UpdateLCDCountDownDisplay();
+  SetDisplayTarget(); 
+  UpdateRibbonTargets();
+  MoveToTarget();
+  CheckForCompletion(); //will change GLOBAL_STATE to exit this loop
+  delay(mainLoopDelayMS/10);
 }
 
 void SetDisplayTarget()
