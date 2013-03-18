@@ -28,3 +28,13 @@ Display SecondsToDateTime(long seconds)
 
   return result;
 }  
+
+Display TimeDiff_CalculateSyncTargetDisplay()
+{
+
+}
+
+bool IsTimeDiffEnoughForCountDown()
+{
+  return targetTime.secondstime() - countDownPrepLeadTimeSeconds > globalTime.secondstime() ;
+}

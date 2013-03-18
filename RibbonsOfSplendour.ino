@@ -52,7 +52,7 @@ void DisplayMoveTo(Display displayTarget);
 
 //Enumerators 
 enum GlobalState {
-  eBooting, eCountdown, eSetGlobalTime, eSetTargetTime, eCompleted};
+  eBooting, eCountdown, eSetGlobalTime, eSetTargetTime, eCompleted, eParked};
 enum RunningState {
   eStarting, ePreparing, eSynching, eRunning,eMoving, eZeroing, eTargetMet, eFinished};
 enum RunningDisplayState {
@@ -104,7 +104,7 @@ int globalPWMCycle = 0;
 unsigned int cyclesSinceLastDisplayToggle;
 const int displayToggleTimeSeconds = 5; //This valued determins how long the running display will toggle for.
 const int displayToggleCycles = displayToggleTimeSeconds * 15; //the multiplier will change depending on the time to processing one loop of the sensors.
-const int DisplayLeadTimeSeconds = 180;
+const int countDownPrepLeadTimeSeconds = 180;
 
 //Sensor Management
 const int SensorCount =3;
@@ -169,11 +169,18 @@ void loop()
   {
     pl("~eCompletedState");
     MoveToZero();
+    GLOBAL_STATE = eParked;
+  }
+  else if (GLOBAL_STATE == eParked)
+  {
+    pl("~eParked");
+    UpdateLCDCountDownDisplay();
   }
   else
   {
-  pl("ERROR WITH GLOBAL STATE : Loop"); 
+  pl("ERROR WITH MAIN LOOP - GLOBAL_STATE out of range."); 
   }
+  
   delay(mainLoopDelayMS);
   
   //SerialDisplayDev();
