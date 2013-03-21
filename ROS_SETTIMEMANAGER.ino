@@ -3,6 +3,7 @@
 void SetGlobalTime()
 {
   pl("Enter SetGLobalTime");
+  SerialDisplayGlobalTime();
 
   while (JOYSTICK_STATE == eCentre && GLOBAL_STATE == eSetGlobalTime) //wait for input
   {
@@ -48,7 +49,8 @@ void SetGlobalTime()
 void SetTargetTime()
 
 {
-  pl("Enter TargetGLobalTime");
+  pl("Enter SetTargetTime");
+  SerialDisplayTargetTime();
 
   while (JOYSTICK_STATE == eCentre && GLOBAL_STATE == eSetTargetTime) //wait for input
   {

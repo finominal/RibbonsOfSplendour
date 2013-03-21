@@ -1,17 +1,21 @@
 
+
+
+
 void RunCountdownProgram()
 {
   while(GLOBAL_STATE == eCountdown)
   {
     if(RUNNING_STATE == eStarting)
     {
-      if(IsTimeDiffEnoughForCountDown())
+      if(IsTimeDiffEnoughForCountDown)
       {
         PrepareDisplayForCountDown(); 
       }
       else
       {
         GLOBAL_STATE = eCompleted; //not enought time left to start up the sequence, or Timer has expired.
+        //Completed will trigger the display to move to ZERO, then change the Global State to eParked
       }
     }
     else if(RUNNING_STATE == eSynching)
@@ -20,28 +24,49 @@ void RunCountdownProgram()
     }
     else
     {
-       ExecuteCountDownSequence();
+       ExecuteCountDownSequence(); //sub loop in here
     }
   }
 }
+
+//runs when eParked to check for a new countdown 
+void CheckForNewCountDown()
+{
+  if(globalTime.secondstime() < targetTime.secondstime())
+    {
+      GLOBAL_STATE = eCountdown;
+      RUNNING_STATE = eStarting;
+  }
+}
+
+
 void WaitForSync()
 {
   GetGlobalTime();
-  if(targetTime.secondstime() -  globalTime.secondstime() < 0) 
+  if(nextDisplayTime.secondstime() -  globalTime.secondstime() < 0) 
   {
-    targetTime =  SecondsToDateTime((long)(globalTime.secondstime() + 1));
+    nextDisplayTime = DateTime(globalTime.secondstime()+1); //advance to the next Second
     RUNNING_STATE == eRunning;
   }
 }
 
 void PrepareDisplayForCountDown()
 {
-  RUNNING_STATE == eSynching;
+  //this subroutine runs ONCE, and exits when the ribbons are in place. 
+  //To get here the RUNING_STATE must be in eStarting, and will end with eSyncing
+  pl();
+  pl("PrepareDisplayForCountDown");
+  pl();
+  
   LcdInformStartingCountdown();
-  displayTarget = TimeDiff_CalculateSyncTargetDisplay(); //calculate a waiting time to sync to.
+  
+  nextDisplayTime = TimeDiff_CalculateNextTargetTime(); //calculate a waiting time to sync to.
+  displayTarget = ConvertSecondsToDisplay(nextDisplayTime.secondstime());
   displayTarget.second = 0; //Round down to the minute.
+  
   UpdateRibbonTargets();
-  MoveToTarget();
+  
+  MoveToTarget(); //Loops inside here untill ribbons have moved to ready position. 
 }
 
 void ExecuteCountDownSequence()
@@ -58,7 +83,7 @@ void ExecuteCountDownSequence()
 void SetDisplayTarget()
 {
   pl("  SetDisplayTarget");
-  displayTarget = CalculateCountdownTime(globalTime, targetTime);
+  displayTarget = CalculateCountDownDisplay(globalTime, targetTime);
 }
 
 void UpdateRibbonTargets()
@@ -78,7 +103,6 @@ void UpdateRibbonTargets()
   RIBBONS[6].targetDisplay = (displayTarget.day % 100) % 10 ;
       //Will set black, otherwize will show zero for last numeral 
       //if(RIBBONS[6].targetDisplay == 0 && RIBBONS[8].targetDisplay == RIBBONS[8].length + 1 && RIBBONS[7].targetDisplay = RIBBONS[7].length + 1) RIBBONS[6].targetDisplay = RIBBONS[6].length + 1; //If Zero and hudreds is blank, change to blank = max Ribbon IDX
-   
    
   //Set Hours: 5,4
   //Set Hours Tens
@@ -109,7 +133,8 @@ void UpdateRibbonTargets()
   RIBBONS[0].targetDisplay = displayTarget.second % 10 ; //days ones
       //Will set black, otherwize will show zero for last numeral 
       //if(RIBBONS[2].targetDisplay == 0 && RIBBONS[3].targetDisplay == RIBBONS[3].length + 1 ) RIBBONS[2].targetDisplay = RIBBONS[2].length + 1; //If Zero and hudreds is blank, change to blank = max Ribbon IDX
-    
+      
+  if(DEV_MODE) SerialDisplayAllRibbonPrimaryValues();
 }
 
 
@@ -117,11 +142,18 @@ void UpdateRibbonTargets()
 void MoveToTarget()
 {
   pl("  MoveRibbonsToTargets");
-  RUNNING_STATE == eMoving;
-  while(RUNNING_STATE == eMoving)
+  RUNNING_STATE = eMoving;
+  while(RUNNING_STATE == eMoving && GLOBAL_STATE == eCountdown) //GLobal State helps exit on TimeChange selected.
   {
-    UpdatePWMs();
+    UpdatePWMs();// has to run each loop as some ribbins will stop in place before others.
+    SensorManager_AllSensorsScanItteration();
     CheckForTargetMet();
+    
+    if(DEV_MODE) 
+    {
+      delay(500);
+      //SerialDisplayAllRibbonPrimaryValues();
+    }
   }
 }
 
@@ -137,8 +169,8 @@ void CheckForCompletion()
 
 void UpdatePWMs()
 {
-  pl("  UpdatePWM's");
-   for(int i = 0; i < ribbonCount; i++)
+  pl("   UpdatePWM's");
+  for(int i = 0; i < ribbonCount; i++)
   {
     if(RIBBONS[i].targetDisplay == RIBBONS[i].currentdisplay) 
     { RIBBONS[i].pwmDuty = 0; }
@@ -149,7 +181,7 @@ void UpdatePWMs()
 
 void MoveToZero()
 {
-  displayTarget = SecondsToDateTime(0);
+  displayTarget = ConvertSecondsToDisplay(0);
   UpdateRibbonTargets();
   MoveToTarget();
   RUNNING_STATE == eTargetMet;
@@ -157,12 +189,13 @@ void MoveToZero()
 
 void CheckForTargetMet()
 {
-  pl("CheckForTargetMet");
+  pl("   CheckForTargetMet");
   //check every target value to see if the round is completed
   for(int i = 0; i < ribbonCount; i++)
   {
     if(RIBBONS[i].targetDisplay != RIBBONS[i].currentdisplay)
     {
+      p("     Ribbon "); p(i); pl(" Not Ready.");
       return;
     }
   }

@@ -69,7 +69,7 @@ RunningState RUNNING_STATE;
 RunningDisplayState DISPLAY_STATE;
 Joystick JOYSTICK_STATE; 
 SetTimeFocus SET_TIME_FOCUS;
-
+bool DEV_MODE;
 
 //Declare Library Classes
 RTC_DS3234 clock(SPI_CS);
@@ -88,13 +88,14 @@ LiquidCrystal lcd(34, 36, 38, 40, 42, 44);
 //Program Variables
 DateTime globalTime; 
 DateTime targetTime;
+DateTime nextDisplayTime;
 Display displayTarget;
 char lcdLine1[17];
 char lcdLine2[17];
 const float mainLoopDelayMS = 200;
 
 //Ribbons
-const int ribbonCount = 2;
+const int ribbonCount = 9;
 Ribbon RIBBONS[ribbonCount];
 
 //PWM 
@@ -104,14 +105,12 @@ int globalPWMCycle = 0;
 unsigned int cyclesSinceLastDisplayToggle;
 const int displayToggleTimeSeconds = 5; //This valued determins how long the running display will toggle for.
 const int displayToggleCycles = displayToggleTimeSeconds * 15; //the multiplier will change depending on the time to processing one loop of the sensors.
-const int countDownPrepLeadTimeSeconds = 180;
+const int countDownPrepLeadTimeSeconds = 120;
 
 //Sensor Management
-const int SensorCount =3;
 const int SensorThreshold = 512;
 
-int SensorsData[SensorCount]; 
-int SensorsClock[SensorCount];
+
 
 
 
@@ -125,11 +124,13 @@ void setup()
   InitializeJoystick();
   InitializeMuxes(); //sensors
   //InitializeInterruptTimerOne(); //PWM
+  InitializeRibbons();
   pl("InitializeAllComplete!");
   
   GLOBAL_STATE = eCountdown;
   RUNNING_STATE = eStarting;
   DISPLAY_STATE = eGlobal;
+  DEV_MODE = true;
 
   //SetTargetTimeManually(); 
   pl();
@@ -141,6 +142,9 @@ void setup()
   pl("Startup Completed OK !");
   pl();
   
+  
+  SerialDisplayGlobalTime();
+  delay(2000);
 }
 
 
@@ -152,20 +156,20 @@ void loop()
   //StateManagement
   if(GLOBAL_STATE == eCountdown) {
     pl();
-    pl("~RunCountdownProgram");
+    pl("~eCountdown");
     RunCountdownProgram();
   }
   else if (GLOBAL_STATE == eSetGlobalTime) {
-    pl("~SetGlobalTime");
+    pl("~eSetGlobalTime");
     SetGlobalTime();
   }
   else if (GLOBAL_STATE == eSetTargetTime) {
-    pl("~SetTargetTime");
+    pl("~eSetTargetTime");
     SetTargetTime();
   }
   else if (GLOBAL_STATE == eCompleted)
   {
-    pl("~eCompletedState");
+    pl("~eCompleted");
     MoveToZero();
     GLOBAL_STATE = eParked;
   }
@@ -173,6 +177,7 @@ void loop()
   {
     pl("~eParked");
     UpdateLCDCountDownDisplay();
+    CheckForNewCountDown();
   }
   else
   {

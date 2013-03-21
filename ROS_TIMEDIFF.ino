@@ -4,12 +4,12 @@
 #define SecondsInMinute 60
 
 
-Display CalculateCountdownTime(DateTime global, DateTime target)
+Display CalculateCountDownDisplay(DateTime global, DateTime target)
 {
-  return SecondsToDateTime(target.secondstime() -  global.secondstime());
+  return ConvertSecondsToDisplay(target.secondstime() -  global.secondstime());
 }
  
-Display SecondsToDateTime(long seconds)
+Display ConvertSecondsToDisplay(int seconds)
 {
   Display result;                                                                                                                                                                                                                                                                                                           
   
@@ -27,9 +27,14 @@ Display SecondsToDateTime(long seconds)
   return result;
 }  
 
-Display TimeDiff_CalculateSyncTargetDisplay()
+DateTime TimeDiff_CalculateSyncDisplayTime()
 {
-  return  SecondsToDateTime(globalTime.secondstime() +  countDownPrepLeadTimeSeconds);
+  return  DateTime(globalTime.secondstime() +  countDownPrepLeadTimeSeconds);
+}
+
+DateTime TimeDiff_CalculateNextTargetTime()
+{
+  return  DateTime(globalTime.secondstime() +  1);
 }
 
 bool IsTimeDiffEnoughForCountDown()

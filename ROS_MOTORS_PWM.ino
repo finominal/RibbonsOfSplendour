@@ -10,12 +10,15 @@ byte HighMotorByte = 0;
 
 //ENTRY POINT
 //Called By Timer Interrupt.
-//Looks up global objects, and sets motors based on the objects variables ( PWM_Cycle )
+//Looks up RIBBON objects, and sets motor on/of based on each ribbons current duty cycle
+//Duty cycle is created in quater steps to create 0, 25, 50, 75 and 100 percent duty.
+//if a given ribbon is at 75 cycle, the associated motor is turned on for 3/4 PWM cycles steps.
+
 void ItteratePWM()
 {
-    AdvanceGlobalPWMCycle();
-    CalculateNextPWMBufferValues(); //motors
-    PushTo4x4Shield(LowMotorByte, HighMotorByte); //motors
+  AdvanceGlobalPWMCycle(); //1,2,3,4 repeat PWM cycle is created in quarter steps for 0, 25, 50, 75, 100 Percent dutys
+  CalculateNextPWMBufferValues(); //Motors 
+  PushTo4x4Shield(LowMotorByte, HighMotorByte); //motors Push the new buffer values to the shield
 }
 
 void AdvanceGlobalPWMCycle()

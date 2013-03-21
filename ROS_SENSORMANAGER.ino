@@ -14,11 +14,27 @@ int sensorReadThresholdMs = 200;
       3b. If second positive clock, read data, set wait for clock low.
       3c. IF found positive, check if it was a fourth clock bit, and if so set the current known value in the ribbon object manager
     */
+    
+void InitializeMuxes()
+{
+  pl("InitilaizeMuxes");
+  DDRA = B11111111; //pins 22-29 output (port A) both MUXs are connected, 22-25,26-29
+  PORTA = 0;
+  pl("InitilaizeMuxes_OK!");
+}
 
-void RibbonSensorScanCycleItteration(int ribbonIdx)
+void SensorManager_AllSensorsScanItteration()
+{
+  for(int i = 0; i < ribbonCount; i++)
+  {
+    RibbonSensorScanCycle_Itteration(i);
+  }
+}
+
+void RibbonSensorScanCycle_Itteration(int ribbonIdx)
 {
   // 1. First, check to see if timeout has occured, if so reset. 
-  if( HasTimeExpired ) //if too long has passed
+  if( HasTimeoutExpired ) //if too long has passed
   {
     RIBBONS[ribbonIdx].ResetSensorReadCycle(); //RibbonSensorCycle=0 and clear rawSensorData[]
   }
@@ -36,7 +52,7 @@ void RibbonSensorScanCycleItteration(int ribbonIdx)
   }
 }
 
-bool HasTimeExpired(int ribbonIdx)
+bool HasTimeoutExpired(int ribbonIdx)
 {
   // 1. need to accomodate for Millis() rollover each 9 hours.
   if ( millis() < RIBBONS[ribbonIdx].lastDetectedTime)
@@ -74,7 +90,7 @@ void ScanForNextClockBit(int ribbonIdx)
   else if( RIBBONS[ribbonIdx].thisClockRead == 1 && RIBBONS[ribbonIdx].lastClockRead == 1 )
   {
     // set appropriate veriables
-    RIBBONS[ribbonIdx].rawSensorData |= RIBBONS[ribbonIdx].thisDataRead << RIBBONS[ribbonIdx].readSensorCycle;
+    RIBBONS[ribbonIdx].rawSensorData |= RIBBONS[ribbonIdx].thisDataRead << 3 - RIBBONS[ribbonIdx].readSensorCycle ;  //Three minuse, because we must read the ribbon Binary in reverse, Was manufactured for rolling UP not DOWN.
     RIBBONS[ribbonIdx].lastDetectedTime = millis();
     RIBBONS[ribbonIdx].waitingForClockLow = true;
     RIBBONS[ribbonIdx].readSensorCycle++;
@@ -98,12 +114,13 @@ void CheckForCompletedSensorReadCycle(int ribbonIdx)
 void ReadRibbonClockAndData(int i )
 {
   SelectMuxSensor(i);
-  RIBBONS[i].lastClockRead = ConvertMuxSensorRead(clockSensorPin);
-  RIBBONS[i].lastDataRead = ConvertMuxSensorRead(dataSensorPin);
+  RIBBONS[i].lastClockRead = MuxSensorRead(clockSensorPin);
+  RIBBONS[i].lastDataRead = MuxSensorRead(dataSensorPin);
 }
 
-int  ConvertMuxSensorRead(int analogPin)
+int MuxSensorRead(int analogPin)
 {
+  //convert the analog read to bit
   return analogRead(clockSensorPin) > 512 ? 0 : 1; //sensor is inverted on analogue read
 }
 
@@ -115,10 +132,6 @@ void SelectMuxSensor(int sensorNumber)
    delayMicroseconds(10);//wait for mux's to change POINT OF FAILURE!!!
 }
 
-void InitializeMuxes()
-{
-  pl("InitilaizeMuxes");
-  DDRA = B11111111; //pins 22-29 output (port A) both MUXs are connected, 22-25,26-29
-  PORTA = 0;
-  pl("InitilaizeMuxes_OK!");
-}
+
+
+
