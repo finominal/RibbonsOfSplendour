@@ -4,9 +4,6 @@
 #define MRPIN     8  
 #define INDPIN    4
 
-//buffers for each phase of the PWMs.
-byte LowMotorByte = 0;
-byte HighMotorByte = 0;
 
 //ENTRY POINT
 //Called By Timer Interrupt.
@@ -23,7 +20,8 @@ void ItteratePWM()
 
 void AdvanceGlobalPWMCycle()
 {
-  globalPWMCycle = globalPWMCycle++ % 4;
+  globalPWMCycle == 4 ? globalPWMCycle = 1 : globalPWMCycle++;
+  //p("C="); pl(globalPWMCycle);
 }
 
 void CalculateNextPWMBufferValues()
@@ -48,7 +46,7 @@ void CalculateNextPWMBufferValues()
     }
       
     //set the motors based on the current pwmCycle and ribbon duty
-    if(RIBBONS[idx].pwmDuty > globalPWMCycle) 
+    if(RIBBONS[idx].pwmDuty >= globalPWMCycle) 
     {
       LowMotorByte = LowMotorByte | lowMask;
       HighMotorByte = HighMotorByte | highMask;

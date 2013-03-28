@@ -6,7 +6,7 @@
 #include <RTClib.h>
 #include <RTC_DS3234.h>
 #include <LiquidCrystal.h>
-#include <ShiftStepper.h>
+//#include <ShiftStepper.h> //no clash with TIR
 #include <EEPROM.h>
 
 //Methods
@@ -110,21 +110,29 @@ const int countDownPrepLeadTimeSeconds = 120;
 //Sensor Management
 const int SensorThreshold = 512;
 
-
+//buffers for each phase of the PWMs.
+byte LowMotorByte = 0;
+byte HighMotorByte = 0;
 
 
 
 void setup()
-{
-  Serial.begin(57600);
+{  
+  Serial.begin(115200);
   pl();
   pl("********ARDUINO RESTART*******");
+  delay(10);
+  
+  InitializeRibbons();
+  pl("Ribbon Objects Initialized");
+  delay(10);
+  InitializeInterruptPWM(); //PWM
   InitializeLCD();
   InitializeClock();
   InitializeJoystick();
   InitializeMuxes(); //sensors
-  //InitializeInterruptTimerOne(); //PWM
   InitializeRibbons();
+  InitializeDriverShieldPins();
   pl("InitializeAllComplete!");
   
   GLOBAL_STATE = eCountdown;
@@ -138,17 +146,57 @@ void setup()
   TargetTimeReadEeprom(); //get the stored target time out of non volitile storage.
   SerialDisplayTargetTime();
   GetGlobalTime();
+  delay(1);//wait for clock 
+  SerialDisplayGlobalTime();
+  
+
   
   pl("Startup Completed OK !");
   pl();
+  delay(1000);
   
+  EnableTimerInteruptTwo();
+  PrepareSensors(); //sets timers to current millis();
+}
+
+void loop()
+{
+  pl();
+  pl("Loop");
+    //dev
+  RIBBONS[4].pwmDuty = 3;
   
-  SerialDisplayGlobalTime();
-  delay(2000);
+  RibbonSensorScanCycle_Itteration(4);
+  
+  lcd.clear();
+  
+  char buf[21];
+  targetTime.toString(buf,21);
+   
+  //Update Display
+  //Line 1
+  lcd.setCursor(0, 0);
+  lcd.print("R4 ");
+  
+  lcd.print( RIBBONS[4].lastDetectedTime);
+
+  //Line 2
+  lcd.setCursor(0, 1);
+  lcd.print(RIBBONS[4].currentDisplay);
+  lcd.setCursor(3, 1);
+  lcd.print(RIBBONS[4].rawSensorData);
+  
+  lcd.setCursor(6, 1);
+  lcd.print(LowMotorByte);
+  
+  lcd.setCursor(9, 1);
+  lcd.print(HighMotorByte);
+  
+  delay(5);
 }
 
 
-
+/*
 void loop()
 {
   pl();
@@ -191,7 +239,7 @@ void loop()
 }
 
 
-
+*/
 
 
 

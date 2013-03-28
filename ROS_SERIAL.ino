@@ -86,7 +86,7 @@ void SerialDisplayCountdownTime(Display disp)
   pl("DisplayAllRibbonSensorValues");
   for(int i = 0; i < ribbonCount; i++)
   {
-    p("R"); p(i); p(" Current="); p(RIBBONS[i].currentdisplay); p(" Target="); pl(RIBBONS[i].targetDisplay); 
+    p("R"); p(i); p(" Current="); p(RIBBONS[i].currentDisplay); p(" Target="); pl(RIBBONS[i].targetDisplay); 
   }
   pl();
 }

@@ -1,13 +1,11 @@
 
-
-
-
 void RunCountdownProgram()
 {
   while(GLOBAL_STATE == eCountdown)
   {
     if(RUNNING_STATE == eStarting)
     {
+      PrepareSensors();
       if(IsTimeDiffEnoughForCountDown)
       {
         PrepareDisplayForCountDown(); 
@@ -172,7 +170,7 @@ void UpdatePWMs()
   pl("   UpdatePWM's");
   for(int i = 0; i < ribbonCount; i++)
   {
-    if(RIBBONS[i].targetDisplay == RIBBONS[i].currentdisplay) 
+    if(RIBBONS[i].targetDisplay == RIBBONS[i].currentDisplay) 
     { RIBBONS[i].pwmDuty = 0; }
     else 
     { RIBBONS[i].pwmDuty = 4; }
@@ -193,7 +191,7 @@ void CheckForTargetMet()
   //check every target value to see if the round is completed
   for(int i = 0; i < ribbonCount; i++)
   {
-    if(RIBBONS[i].targetDisplay != RIBBONS[i].currentdisplay)
+    if(RIBBONS[i].targetDisplay != RIBBONS[i].currentDisplay)
     {
       p("     Ribbon "); p(i); pl(" Not Ready.");
       return;
