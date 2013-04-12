@@ -22,9 +22,9 @@ void InitializeInterruptPWM()
   TCCR2B &= ~(1<<WGM22);
   ASSR &= ~(1<<AS2);
   TIMSK2 &= ~(1<<OCIE2A);
-  TCCR2B |= ((1<<CS22) | (1<<CS21) ); //prescaler 256
-  TCCR2B &= ~ (1<<CS20);
-  TCNT2 = 255; // counter
+  TCCR2B |= ((1<<CS22))  ; //prescaler 256
+  TCCR2B &= ~ ((1<<CS20)| (1<<CS21));
+  TCNT2 = 256; // counter
 	
   pl("Initialize Interrupt Timer Two OK");
 }

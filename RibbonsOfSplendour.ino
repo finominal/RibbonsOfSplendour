@@ -147,55 +147,16 @@ void setup()
   SerialDisplayTargetTime();
   GetGlobalTime();
   delay(1);//wait for clock 
-  SerialDisplayGlobalTime();
   
-
-  
-  pl("Startup Completed OK !");
-  pl();
-  delay(1000);
-  
-  EnableTimerInteruptTwo();
-  PrepareSensors(); //sets timers to current millis();
+  EnableTimerInteruptTwo();//Lastly, start interrupts!
 }
 
 void loop()
 {
-  pl();
-  pl("Loop");
-    //dev
-  RIBBONS[4].pwmDuty = 3;
-  
-  RibbonSensorScanCycle_Itteration(4);
-  
-  lcd.clear();
-  
-  char buf[21];
-  targetTime.toString(buf,21);
-   
-  //Update Display
-  //Line 1
-  lcd.setCursor(0, 0);
-  lcd.print("R4 ");
-  
-  lcd.print( RIBBONS[4].lastDetectedTime);
+  TestRibbonMoveAndDisplay(2);
+  TestTurnOnMotorsPWMCycle(0,0,0,0,0,0,0,0,0);
 
-  //Line 2
-  lcd.setCursor(0, 1);
-  lcd.print(RIBBONS[4].currentDisplay);
-  lcd.setCursor(3, 1);
-  lcd.print(RIBBONS[4].rawSensorData);
-  
-  lcd.setCursor(6, 1);
-  lcd.print(LowMotorByte);
-  
-  lcd.setCursor(9, 1);
-  lcd.print(HighMotorByte);
-  
-  delay(5);
-  //Yay!
 }
-
 
 /*
 void loop()

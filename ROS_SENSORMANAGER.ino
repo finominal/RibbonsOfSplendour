@@ -72,9 +72,9 @@ bool HasTimeoutExpired(int ribbonIdx)
   {
     return  RIBBONS[ribbonIdx].readSensorCycle > 0 && ((34359738 -  RIBBONS[ribbonIdx].lastDetectedTime + mil) > sensorReadThresholdMs) ; ;
   }
-  p("mil="); pl( mil ); 
-  p("LastDetected="); pl(RIBBONS[ribbonIdx].lastDetectedTime); 
-  p("sensorReadThresholdMs=");  pl(sensorReadThresholdMs);
+  //p("mil="); pl( mil ); 
+  //p("LastDetected="); pl(RIBBONS[ribbonIdx].lastDetectedTime); 
+  //p("sensorReadThresholdMs=");  pl(sensorReadThresholdMs);
   return RIBBONS[ribbonIdx].readSensorCycle > 0 && ((mil - RIBBONS[ribbonIdx].lastDetectedTime) > sensorReadThresholdMs);;
 }
 
@@ -96,22 +96,22 @@ void WaitForClockLow(int ribbonIdx)
 
 void ScanForNextClockBit(int ribbonIdx)
 {
-  p("ScnSen"); p(ribbonIdx);p(" cyc="); pl(RIBBONS[ribbonIdx].readSensorCycle)
+  //p("ScnSen"); p(ribbonIdx);p(" cyc="); pl(RIBBONS[ribbonIdx].readSensorCycle)
   // 3. read the current ribbons clock and data, store results in RIBBON[] array
   ReadRibbonClockAndData(ribbonIdx);
-  p("idx ");p(ribbonIdx);p(" C="); p(RIBBONS[ribbonIdx].thisClockRead); p(" d="); pl(RIBBONS[ribbonIdx].thisDataRead);
-  p("LC=");p(RIBBONS[ribbonIdx].lastClockRead); p(" LD=");pl(RIBBONS[ribbonIdx].lastDataRead);
+  //p("idx ");p(ribbonIdx);p(" C="); p(RIBBONS[ribbonIdx].thisClockRead); p(" d="); pl(RIBBONS[ribbonIdx].thisDataRead);
+  //p("LC=");p(RIBBONS[ribbonIdx].lastClockRead); p(" LD=");pl(RIBBONS[ribbonIdx].lastDataRead);
 
   // 3a. Look for a high edge
   if(RIBBONS[ribbonIdx].thisClockRead == 1 && RIBBONS[ribbonIdx].lastClockRead == 0)
   {
-    pl("SetLastClockRead");
+    //pl("SetLastClockRead");
     RIBBONS[ribbonIdx].lastClockRead = RIBBONS[ribbonIdx].thisClockRead; //just record the change for first detection    
   }
   // 3b. Look for a high edge second read to ensure solid value   
   else if( RIBBONS[ribbonIdx].thisClockRead == 1 && RIBBONS[ribbonIdx].lastClockRead == 1 )
   {
-    p("SetRawSensorData - Cycle=");    pl(RIBBONS[ribbonIdx].readSensorCycle);
+    //p("SetRawSensorData - Cycle=");    pl(RIBBONS[ribbonIdx].readSensorCycle);
 
     // set appropriate veriables
     RIBBONS[ribbonIdx].rawSensorData |= RIBBONS[ribbonIdx].thisDataRead <<  RIBBONS[ribbonIdx].readSensorCycle ;  //Three minuse, because we must read the ribbon Binary in reverse, Was manufactured for rolling UP not DOWN.
@@ -128,7 +128,7 @@ void CheckForCompletedSensorReadCycle(int ribbonIdx)
   // 3c Check if read cycle complete
   if(RIBBONS[ribbonIdx].readSensorCycle == 4)
   {
-    pl("ReadSenCycFinish")
+    //pl("ReadSenCycFinish")
     RIBBONS[ribbonIdx].currentDisplay = RIBBONS[ribbonIdx].rawSensorData;
     RIBBONS[ribbonIdx].readSensorCycle = 0;
     RIBBONS[ribbonIdx].rawSensorData = 0;
@@ -140,7 +140,11 @@ void ReadRibbonClockAndData(int i )
 {
   SelectMuxSensor(i);
   RIBBONS[i].thisClockRead = MuxSensorRead(clockSensorPin);
-  RIBBONS[i].thisDataRead = MuxSensorRead(dataSensorPin);
+  
+  //broken physical channel 8 on data mux, have to use idx 9
+  if(i==8) {RIBBONS[9].thisDataRead = MuxSensorRead(dataSensorPin);}
+  else {RIBBONS[i].thisDataRead = MuxSensorRead(dataSensorPin);}
+  
   
 }
 
