@@ -1,9 +1,9 @@
 
-#define clockSensorPin 15
-#define dataSensorPin 14
+#define clockSensorPin 47
+#define dataSensorPin 49
 
 //bool waitingForClockLow = false;
-int sensorReadThresholdMs = 1000;
+int sensorReadThresholdMs = 1200;
 
     /*
     PERFORM A SENSOR READ CYCLE
@@ -20,6 +20,12 @@ void InitializeMuxes()
   pl("Initilaize Muxes");
   DDRA = B11111111; //pins 22-29 output (port A) both MUXs are connected, 22-25,26-29
   PORTA = 0;
+  
+  pinMode(clockSensorPin,INPUT);
+  pinMode(dataSensorPin,INPUT);
+  digitalWrite(clockSensorPin, HIGH);
+  digitalWrite(dataSensorPin, HIGH);
+  
   pl("Initilaize Muxes OK");
 }
 
@@ -37,14 +43,14 @@ void RibbonSensorScanCycle_Itteration(int ribbonIdx)
   if( HasTimeoutExpired(ribbonIdx) ) //if too long has passed
   {
     RIBBONS[ribbonIdx].ResetSensorReadCycle(); //RibbonSensorCycle=0 and clear rawSensorData[]
-    p("Reset Sensor Cycle - "); pl(ribbonIdx); 
+    //p("Reset Sensor Cycle - "); pl(ribbonIdx); 
   }
   else 
   {
     // 2. If waiting for clock low after finding an positive: 
     if(RIBBONS[ribbonIdx].waitingForClockLow)//if we are waiting for the clock to go low, meaning we just read the data...
     {
-      pl("Waiting");
+      //pl("Waiting");
       WaitForClockLow(ribbonIdx);
     }
     else //***SCAN FOR A NEW RIBBON BIT****
@@ -90,7 +96,7 @@ void WaitForClockLow(int ribbonIdx)
   else if(RIBBONS[ribbonIdx].lastClockRead == 0 && RIBBONS[ribbonIdx].thisClockRead == 0) 
   {
     RIBBONS[ribbonIdx].waitingForClockLow = false;
-    pl("ClockLowFound");
+    //pl("ClockLowFound");
   }
 }
 
@@ -105,7 +111,7 @@ void ScanForNextClockBit(int ribbonIdx)
   // 3a. Look for a high edge
   if(RIBBONS[ribbonIdx].thisClockRead == 1 && RIBBONS[ribbonIdx].lastClockRead == 0)
   {
-    //pl("SetLastClockRead");
+   // pl("SetLastClockRead");
     RIBBONS[ribbonIdx].lastClockRead = RIBBONS[ribbonIdx].thisClockRead; //just record the change for first detection    
   }
   // 3b. Look for a high edge second read to ensure solid value   
@@ -114,7 +120,7 @@ void ScanForNextClockBit(int ribbonIdx)
     //p("SetRawSensorData - Cycle=");    pl(RIBBONS[ribbonIdx].readSensorCycle);
 
     // set appropriate veriables
-    RIBBONS[ribbonIdx].rawSensorData |= RIBBONS[ribbonIdx].thisDataRead <<  RIBBONS[ribbonIdx].readSensorCycle ;  //Three minuse, because we must read the ribbon Binary in reverse, Was manufactured for rolling UP not DOWN.
+    RIBBONS[ribbonIdx].rawSensorData |= RIBBONS[ribbonIdx].thisDataRead <<  RIBBONS[ribbonIdx].readSensorCycle ;  
     RIBBONS[ribbonIdx].lastDetectedTime = millis();
     RIBBONS[ribbonIdx].waitingForClockLow = true;
     RIBBONS[ribbonIdx].readSensorCycle++;
@@ -140,18 +146,13 @@ void ReadRibbonClockAndData(int i )
 {
   SelectMuxSensor(i);
   RIBBONS[i].thisClockRead = MuxSensorRead(clockSensorPin);
-  
-  //broken physical channel 8 on data mux, have to use idx 9
-  if(i==8) {RIBBONS[9].thisDataRead = MuxSensorRead(dataSensorPin);}
-  else {RIBBONS[i].thisDataRead = MuxSensorRead(dataSensorPin);}
-  
-  
+  RIBBONS[i].thisDataRead = MuxSensorRead(dataSensorPin);  
 }
 
-int MuxSensorRead(int analogPin)
+int MuxSensorRead(int readPin)
 {
   //convert the analog read to bit
-  return analogRead(analogPin) > 512 ? 0 : 1;; //sensor is inverted on analogue read
+  return !digitalRead(readPin); //sensor is inverted on analogue read
 }
 
 void SelectMuxSensor(int sensorNumber)

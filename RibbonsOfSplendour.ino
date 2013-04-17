@@ -153,8 +153,8 @@ void setup()
 
 void loop()
 {
-  TestRibbonMoveAndDisplay(2);
-  TestTurnOnMotorsPWMCycle(0,0,0,0,0,0,0,0,0);
+  TestRibbonMoveAndDisplay(5);
+  //TestTurnOnMotorsPWMCycle(0,0,0,0,4,1,0,0,0);
 
 }
 

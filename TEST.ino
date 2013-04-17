@@ -1,3 +1,6 @@
+int counter  = 0; 
+
+
 void  TestTurnOnMotorsPWMCycle(int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8)
 {
   RIBBONS[0].pwmDuty = i0;
@@ -11,19 +14,63 @@ void  TestTurnOnMotorsPWMCycle(int i0, int i1, int i2, int i3, int i4, int i5, i
   RIBBONS[8].pwmDuty = i8;
 }
 
+void TestRibbonMoveAndShowRaw(int idx)
+{
+  pl();
+  pl("Loop");
+    //dev
+    
+  RIBBONS[idx].pwmDuty = 4;
+
+  RibbonSensorScanCycle_Itteration(idx); 
+
+  lcd.clear();
+   
+  //Update Display
+  //Line 1
+  lcd.setCursor(0, 0);
+  lcd.print("R"); lcd.print(idx); lcd.print(" ");
+    
+
+  //Line 2
+   lcd.setCursor(0, 1); 
+  lcd.print("c=");
+  lcd.print(RIBBONS[idx].thisClockRead); 
+  
+  lcd.setCursor(5, 1); 
+  lcd.print("d=");
+  lcd.print(RIBBONS[idx].thisDataRead); 
+   
+  }
+
+
+
 void TestRibbonMoveAndDisplay(int idx)
 {
   pl();
   pl("Loop");
     //dev
+    
+  int lastCharacterDetected = -1;
   RIBBONS[idx].pwmDuty = 4;
+
+  while(true)
+  {
+    RibbonSensorScanCycle_Itteration(idx);
+    if( lastCharacterDetected != RIBBONS[idx].currentDisplay )
+    {
+      UpdateDisplaySensorReadTest(idx);
+      RIBBONS[idx].pwmDuty = 0;//pause for a moment
+      lastCharacterDetected = RIBBONS[idx].currentDisplay;
+      delay(1000);
+      RIBBONS[idx].pwmDuty = 4;//continue running
+    }
+  }
+}
   
-  RibbonSensorScanCycle_Itteration(idx);
-  
+void UpdateDisplaySensorReadTest(int idx)
+{
   lcd.clear();
-  
-  char buf[21];
-  targetTime.toString(buf,21);
    
   //Update Display
   //Line 1
@@ -46,9 +93,9 @@ void TestRibbonMoveAndDisplay(int idx)
   
   lcd.setCursor(7, 1);
   lcd.print("M");
-    lcd.print(HighMotorByte, HEX);
+  lcd.print(HighMotorByte, HEX);
   lcd.print(LowMotorByte, HEX);
-
-  delay(20);
+  delay(5);
   //Yay
   }
+  
