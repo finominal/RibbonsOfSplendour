@@ -18,8 +18,6 @@ void LcdInformStartingCountdown()
 {
   lcd.clear();
   
-  char buf[21];
-  targetTime.toString(buf,21);
    
   //Update Display
   //Line 1

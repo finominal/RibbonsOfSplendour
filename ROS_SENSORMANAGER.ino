@@ -3,7 +3,7 @@
 #define dataSensorPin 49
 
 //bool waitingForClockLow = false;
-int sensorReadThresholdMs = 1200;
+int sensorReadThresholdMs = 1000;
 
     /*
     PERFORM A SENSOR READ CYCLE
@@ -20,6 +20,8 @@ void InitializeMuxes()
   pl("Initilaize Muxes");
   DDRA = B11111111; //pins 22-29 output (port A) both MUXs are connected, 22-25,26-29
   PORTA = 0;
+ 
+  pinMode(31,OUTPUT);//stuffed pin 23, map to 31 
   
   pinMode(clockSensorPin,INPUT);
   pinMode(dataSensorPin,INPUT);
@@ -43,7 +45,7 @@ void RibbonSensorScanCycle_Itteration(int ribbonIdx)
   if( HasTimeoutExpired(ribbonIdx) ) //if too long has passed
   {
     RIBBONS[ribbonIdx].ResetSensorReadCycle(); //RibbonSensorCycle=0 and clear rawSensorData[]
-    //p("Reset Sensor Cycle - "); pl(ribbonIdx); 
+    p("Reset Sensor Cycle - "); pl(ribbonIdx); 
   }
   else 
   {
@@ -144,9 +146,19 @@ void CheckForCompletedSensorReadCycle(int ribbonIdx)
 
 void ReadRibbonClockAndData(int i )
 {
-  SelectMuxSensor(i);
+  
+  if(i == 2) //dodgy mux on 2.
+  {
+    SelectMuxSensor(14);
+  }
+  else
+  {
+    SelectMuxSensor(i);
+  }
+  
   RIBBONS[i].thisClockRead = MuxSensorRead(clockSensorPin);
   RIBBONS[i].thisDataRead = MuxSensorRead(dataSensorPin);  
+
 }
 
 int MuxSensorRead(int readPin)
@@ -160,6 +172,7 @@ void SelectMuxSensor(int sensorNumber)
    PORTA = sensorNumber;
    PORTA = PORTA << 4;
    PORTA |= sensorNumber;
+   digitalWrite(31,23);//stuffed pin 23, map to 31
    delayMicroseconds(10);//wait for mux's to change POINT OF FAILURE!!!
 }
 

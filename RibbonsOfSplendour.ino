@@ -146,16 +146,16 @@ void setup()
   TargetTimeReadEeprom(); //get the stored target time out of non volitile storage.
   SerialDisplayTargetTime();
   GetGlobalTime();
-  delay(1);//wait for clock 
+  delayMicroseconds(1);//wait for clock 
   
   EnableTimerInteruptTwo();//Lastly, start interrupts!
 }
 
 void loop()
 {
-  TestRibbonMoveAndDisplay(5);
-  //TestTurnOnMotorsPWMCycle(0,0,0,0,4,1,0,0,0);
-
+  TestRibbonMoveAndDisplay(6, 4);
+  //TestRibbonMoveAndShowRaw(6, 3);//rollerId
+  //TestTurnOnMotorsPWMCycle(0,0,0,0,0,0,2,0,0);
 }
 
 /*

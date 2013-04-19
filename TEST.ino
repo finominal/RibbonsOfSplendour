@@ -14,58 +14,119 @@ void  TestTurnOnMotorsPWMCycle(int i0, int i1, int i2, int i3, int i4, int i5, i
   RIBBONS[8].pwmDuty = i8;
 }
 
-void TestRibbonMoveAndShowRaw(int idx)
+void TestRibbonMoveAndShowRaw(int idx, int pwmDuty)
 {
   pl();
   pl("Loop");
     //dev
-    
-  RIBBONS[idx].pwmDuty = 4;
-
-  RibbonSensorScanCycle_Itteration(idx); 
-
-  lcd.clear();
-   
-  //Update Display
-  //Line 1
-  lcd.setCursor(0, 0);
-  lcd.print("R"); lcd.print(idx); lcd.print(" ");
-    
-
-  //Line 2
-   lcd.setCursor(0, 1); 
-  lcd.print("c=");
-  lcd.print(RIBBONS[idx].thisClockRead); 
+  int lastClock = 0;
+  int lastData = 0;
   
-  lcd.setCursor(5, 1); 
-  lcd.print("d=");
-  lcd.print(RIBBONS[idx].thisDataRead); 
-   
+
+  RIBBONS[idx].pwmDuty = pwmDuty;
+  
+  while(true)
+  {
+    RibbonSensorScanCycle_Itteration(idx); 
+    //p(RIBBONS[idx].thisClockRead); p(" "); pl(RIBBONS[idx].thisDataRead);
+
+    if(lastClock != RIBBONS[idx].thisClockRead || lastData != RIBBONS[idx].thisDataRead)
+    {
+      
+      lastClock = RIBBONS[idx].thisClockRead;
+      lastData = RIBBONS[idx].thisDataRead;
+      
+      lcd.clear();
+       
+      //Update Display
+      //Line 1
+      lcd.setCursor(0, 0);
+      lcd.print("R"); lcd.print(idx); lcd.print(" ");
+        
+      //Line 2
+       lcd.setCursor(0, 1); 
+      lcd.print("c=");
+      lcd.print(RIBBONS[idx].thisClockRead); 
+      
+      lcd.setCursor(5, 1); 
+      lcd.print("d=");
+      lcd.print(RIBBONS[idx].thisDataRead); 
+    }
   }
+  
+}
 
 
 
-void TestRibbonMoveAndDisplay(int idx)
+void TestRibbonMoveAndDisplay(int idx, int pwmDuty)
 {
   pl();
   pl("Loop");
     //dev
     
   int lastCharacterDetected = -1;
-  RIBBONS[idx].pwmDuty = 4;
+  int lastSensorDetectCycle = 0;
+  RIBBONS[idx].pwmDuty = pwmDuty;
+  long loopCounter = 0;
+  long watchdog = 0; 
+  long watchdogThreshold = 1300;
 
   while(true)
   {
     RibbonSensorScanCycle_Itteration(idx);
+    
+    //check for time change, and update display, sensorReadCycle will coincide with detected time.
+    if(lastSensorDetectCycle != RIBBONS[idx].readSensorCycle) 
+    {  
+      lastSensorDetectCycle = RIBBONS[idx].readSensorCycle;
+      UpdateDisplaySensorReadTest(idx);
+      watchdog = 0; 
+    }
+    
     if( lastCharacterDetected != RIBBONS[idx].currentDisplay )
     {
       UpdateDisplaySensorReadTest(idx);
       RIBBONS[idx].pwmDuty = 0;//pause for a moment
       lastCharacterDetected = RIBBONS[idx].currentDisplay;
+      
+      p(loopCounter); p(","); pl(lastCharacterDetected);
+      loopCounter++;
+      
       delay(1000);
-      RIBBONS[idx].pwmDuty = 4;//continue running
+      RIBBONS[idx].pwmDuty = pwmDuty;//continue running
+      
+      watchdog = 0;
     }
+    
+    if(lastCharacterDetected == RIBBONS[idx].currentDisplay && lastSensorDetectCycle == RIBBONS[idx].readSensorCycle)
+    {
+      watchdog++;
+    }
+    
+    if(watchdog >= watchdogThreshold)
+    {
+      Shutdown(idx);
+    }
+    delay(5);
   }
+}
+
+void Shutdown(int idx)
+{
+   RIBBONS[idx].pwmDuty = 0;
+   p("SHUT DOWN AT "); pl(millis());
+   while(true)
+   {
+       lcd.clear();
+
+      //Update Display
+      //Line 1
+      lcd.setCursor(0, 0);
+      lcd.print("ERROR:");
+       lcd.setCursor(0, 1);
+      lcd.print("Stuck Ribbon");
+      delay(1000);
+   }
 }
   
 void UpdateDisplaySensorReadTest(int idx)
