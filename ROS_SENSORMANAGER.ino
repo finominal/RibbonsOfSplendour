@@ -45,7 +45,7 @@ void RibbonSensorScanCycle_Itteration(int ribbonIdx)
   if( HasTimeoutExpired(ribbonIdx) ) //if too long has passed
   {
     RIBBONS[ribbonIdx].ResetSensorReadCycle(); //RibbonSensorCycle=0 and clear rawSensorData[]
-    p("Reset Sensor Cycle - "); pl(ribbonIdx); 
+    //p("Reset Sensor Cycle - "); pl(ribbonIdx); 
   }
   else 
   {
@@ -136,8 +136,9 @@ void CheckForCompletedSensorReadCycle(int ribbonIdx)
   // 3c Check if read cycle complete
   if(RIBBONS[ribbonIdx].readSensorCycle == 4)
   {
-    //pl("ReadSenCycFinish")
+    //p("ReadSenCycFinish ")
     RIBBONS[ribbonIdx].currentDisplay = RIBBONS[ribbonIdx].rawSensorData;
+    //pl(RIBBONS[ribbonIdx].currentDisplay);
     RIBBONS[ribbonIdx].readSensorCycle = 0;
     RIBBONS[ribbonIdx].rawSensorData = 0;
     RIBBONS[ribbonIdx].lastDetectedTime = millis();
@@ -164,15 +165,16 @@ void ReadRibbonClockAndData(int i )
 int MuxSensorRead(int readPin)
 {
   //convert the analog read to bit
-  return !digitalRead(readPin); //sensor is inverted on analogue read
+  return digitalRead(readPin); //sensor is inverted on analogue read
 }
 
 void SelectMuxSensor(int sensorNumber)
 {
+  digitalWrite(31,LOW); //stuffed pin 23, map to 31
    PORTA = sensorNumber;
    PORTA = PORTA << 4;
    PORTA |= sensorNumber;
-   digitalWrite(31,23);//stuffed pin 23, map to 31
+   digitalWrite(31, digitalRead(27));//stuffed pin 23, map to 31
    delayMicroseconds(10);//wait for mux's to change POINT OF FAILURE!!!
 }
 

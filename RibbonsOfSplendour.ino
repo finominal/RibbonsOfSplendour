@@ -6,7 +6,6 @@
 #include <RTClib.h>
 #include <RTC_DS3234.h>
 #include <LiquidCrystal.h>
-//#include <ShiftStepper.h> //no clash with TIR
 #include <EEPROM.h>
 
 //Methods
@@ -153,9 +152,10 @@ void setup()
 
 void loop()
 {
-  TestRibbonMoveAndDisplay(6, 4);
-  //TestRibbonMoveAndShowRaw(6, 3);//rollerId
-  //TestTurnOnMotorsPWMCycle(0,0,0,0,0,0,2,0,0);
+  //TestRibbonMoveAndDisplay(5, 4);//idx, pwmCycle
+  //TestRibbonMoveAndShowRaw(3, 2);//rollerId
+  //TestTurnOnMotorsPWMCycle(0,0,4,4,4,4,0,0,0); //enter pwm duty 0-4
+  TestTurnOnMotorsPWMCycleMonitor(5, 5, 4); //(int lowRibbon, int highRibbon, int pwmCycle)
 }
 
 /*

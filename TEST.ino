@@ -1,5 +1,8 @@
-int counter  = 0; 
 
+
+long loopCounter = 0;
+long watchdog = 0; 
+long watchdogThreshold = 100000;
 
 void  TestTurnOnMotorsPWMCycle(int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8)
 {
@@ -13,6 +16,52 @@ void  TestTurnOnMotorsPWMCycle(int i0, int i1, int i2, int i3, int i4, int i5, i
   RIBBONS[7].pwmDuty = i7;
   RIBBONS[8].pwmDuty = i8;
 }
+
+void  TestTurnOnMotorsPWMCycleMonitor(int lowRibbon, int highRibbon, int pwmCycle)
+{
+  watchdogThreshold *= highRibbon-lowRibbon+1;//watchdog is proportional to the number of ribbons being scanned
+  //turn on motors
+  for(int i = lowRibbon; i<=highRibbon; i++)
+  {
+    RIBBONS[i].pwmDuty = pwmCycle;
+    RIBBONS[i].watchDog = 0;
+  }
+  
+   while(true)//scan all
+  {
+    for(int idx = lowRibbon; idx<=highRibbon; idx++)
+    {
+      RibbonSensorScanCycle_Itteration(idx);
+    
+    //check for time change, sensorReadCycle will coincide with detected time.
+    if(RIBBONS[idx].lastSensorDetectCycle != RIBBONS[idx].readSensorCycle) 
+    {  
+      RIBBONS[idx].lastSensorDetectCycle = RIBBONS[idx].readSensorCycle;
+      RIBBONS[idx].watchDog = 0; 
+    }
+    
+    //catch a new character, and print to serial
+    if( RIBBONS[idx].lastCharacterDetected != RIBBONS[idx].currentDisplay )
+    { 
+      RIBBONS[idx].lastCharacterDetected = RIBBONS[idx].currentDisplay; 
+      p(idx); p(",");pl(RIBBONS[idx].currentDisplay);
+    }
+    
+    if(RIBBONS[idx].lastCharacterDetected == RIBBONS[idx].currentDisplay && RIBBONS[idx].lastSensorDetectCycle == RIBBONS[idx].readSensorCycle)
+    {
+      RIBBONS[idx].watchDog++;
+    }
+    
+    //watchdog triggers shutdown
+    if(RIBBONS[idx].watchDog >= watchdogThreshold)//watchdog triggers shutdown
+    {
+      Shutdown(idx);
+    }
+    //delay(5);
+  }
+  }
+}
+
 
 void TestRibbonMoveAndShowRaw(int idx, int pwmDuty)
 {
@@ -63,13 +112,12 @@ void TestRibbonMoveAndDisplay(int idx, int pwmDuty)
   pl();
   pl("Loop");
     //dev
+  watchdogThreshold = 2500;
     
   int lastCharacterDetected = -1;
   int lastSensorDetectCycle = 0;
   RIBBONS[idx].pwmDuty = pwmDuty;
-  long loopCounter = 0;
-  long watchdog = 0; 
-  long watchdogThreshold = 1300;
+  loopCounter = 0;
 
   while(true)
   {
@@ -122,9 +170,11 @@ void Shutdown(int idx)
       //Update Display
       //Line 1
       lcd.setCursor(0, 0);
-      lcd.print("ERROR:");
+      lcd.print("ERROR: Ribnon");
+      lcd.print(idx);
        lcd.setCursor(0, 1);
-      lcd.print("Stuck Ribbon");
+      lcd.print("Stuck WD: ");
+      lcd.print(RIBBONS[idx].watchDog);
       delay(1000);
    }
 }
