@@ -76,14 +76,20 @@ bool HasTimeoutExpired(int ribbonIdx)
 {
   // 1. need to accomodate for Millis() rollover each 9 hours.
   long mil = millis();
-  if (mil < RIBBONS[ribbonIdx].lastDetectedTime)
+  long threshold = sensorReadThresholdMs;
+  if(ribbonIdx == 0) threshold = threshold /2; //shorter reset time for ribbon 0, which runs at a faster rate
+  
+  if (mil > RIBBONS[ribbonIdx].lastDetectedTime)// if Millis has NOT reset itself since last time
   {
-    return  RIBBONS[ribbonIdx].readSensorCycle > 0 && ((34359738 -  RIBBONS[ribbonIdx].lastDetectedTime + mil) > sensorReadThresholdMs) ; ;
+    return RIBBONS[ribbonIdx].readSensorCycle > 0 && ((mil - RIBBONS[ribbonIdx].lastDetectedTime) > threshold);
+  }
+  else 
+  {  //if millis has reset:
+    return  RIBBONS[ribbonIdx].readSensorCycle > 0 && ((34359738 -  RIBBONS[ribbonIdx].lastDetectedTime + mil) > threshold) ; 
   }
   //p("mil="); pl( mil ); 
   //p("LastDetected="); pl(RIBBONS[ribbonIdx].lastDetectedTime); 
   //p("sensorReadThresholdMs=");  pl(sensorReadThresholdMs);
-  return RIBBONS[ribbonIdx].readSensorCycle > 0 && ((mil - RIBBONS[ribbonIdx].lastDetectedTime) > sensorReadThresholdMs);;
 }
 
 void WaitForClockLow(int ribbonIdx)
@@ -159,7 +165,6 @@ void ReadRibbonClockAndData(int i )
   
   RIBBONS[i].thisClockRead = MuxSensorRead(clockSensorPin);
   RIBBONS[i].thisDataRead = MuxSensorRead(dataSensorPin);  
-
 }
 
 int MuxSensorRead(int readPin)
@@ -175,7 +180,7 @@ void SelectMuxSensor(int sensorNumber)
    PORTA = PORTA << 4;
    PORTA |= sensorNumber;
    digitalWrite(31, digitalRead(27));//stuffed pin 23, map to 31
-   delayMicroseconds(10);//wait for mux's to change POINT OF FAILURE!!!
+   delayMicroseconds(1);//wait for mux's to change 
 }
 
 
