@@ -2,7 +2,7 @@
 
 long loopCounter = 0;
 long watchdog = 0; 
-long watchdogThreshold = 500;
+long watchdogThreshold = 4000;
 
 void  TestTurnOnMotorsPWMCycle(int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7, int i8)
 {
@@ -19,15 +19,19 @@ void  TestTurnOnMotorsPWMCycle(int i0, int i1, int i2, int i3, int i4, int i5, i
 
 void  TestTurnOnMotorsPWMCycleMonitor(int lowRibbon, int highRibbon, int pwmCycle)
 {
-  watchdogThreshold /= highRibbon-lowRibbon+1;//watchdog is proportional to the number of ribbons being scanned
-  int delayValue = ribbonCount+1 - ((highRibbon+1)-lowRibbon);
+  //watchdogThreshold /= highRibbon-lowRibbon+1;//watchdog is proportional to the number of ribbons being scanned
+ // int delayValue = ribbonCount+1 - ((highRibbon+1)-lowRibbon);
+  
+  int delayValue = 0;
   //turn on motors
   for(int i = lowRibbon; i<=highRibbon; i++)
   {
     RIBBONS[i].pwmDuty = pwmCycle;
     RIBBONS[i].watchDog = 0;
+    p("pwm"); p(i);p("=");pl(RIBBONS[i].pwmDuty);
   }
   
+
   while(true)//scan all
   {
     for(int idx = lowRibbon; idx<=highRibbon; idx++)
@@ -58,10 +62,10 @@ void  TestTurnOnMotorsPWMCycleMonitor(int lowRibbon, int highRibbon, int pwmCycl
         //watchdog triggers shutdown
         if(RIBBONS[idx].watchDog >= watchdogThreshold)//watchdog triggers shutdown
         {
-          Shutdown(idx);
+          //Shutdown(idx);
           RIBBONS[idx].watchDog = 0;//reset forever so it doesnt function again
         }
-        delay(delayValue);
+        delay(10);
       }
     }
   }

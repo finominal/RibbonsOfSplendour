@@ -151,11 +151,11 @@ void setup()
 }
 
 void loop()
-{
-  TestRibbonMoveAndDisplay(0, 4);//idx, pwmCycle
-  //TestRibbonMoveAndShowRaw(2, 0);//rollerId
-  //TestTurnOnMotorsPWMCycle(0,0,4,4,4,4,0,0,0); //enter pwm duty 0-4
-  //TestTurnOnMotorsPWMCycleMonitor(2, 4, 4); //(int lowRibbon, int highRibbon, int pwmCycle)
+  {
+  //TestRibbonMoveAndDisplay(0, 4);//idx, pwmCycle
+  //TestRibbonMoveAndShowRaw(3, 0);//rollerId
+  //TestTurnOnMotorsPWMCycle(0,0,0,0,0,0,4,4,4); //enter pwm duty 0-4
+  TestTurnOnMotorsPWMCycleMonitor(0, 0, 4); //(int lowRibbon, int highRibbon, int pwmCycle)
 }
 
 /*
